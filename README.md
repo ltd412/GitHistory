@@ -28,7 +28,8 @@
   merge (with a choice of strategy), rebase (with a warning when it would rewrite pushed commits), cherry-pick,
   revert, reset, tag, compare, and quick history edits (reword, squash, fixup, move, drop).
 - **Review changes properly.** PyCharm-style side-by-side diffs of the whole file with word-level highlights,
-  folded unchanged lines and ▲/▼ between changes — or hunk view. Stage, unstage or discard whole files,
+  folded unchanged lines and ▲/▼ between changes — or the whole file in one column with changes highlighted in
+  place, or hunk view. Stage, unstage or discard whole files,
   hunks or individual lines.
 - **Resolve conflicts calmly.** A three-way merge tool — Yours | Result | Theirs — where `»` / `«` apply a
   side, `×` ignores it, the result stays editable, and conflicted files are worked through one after another.

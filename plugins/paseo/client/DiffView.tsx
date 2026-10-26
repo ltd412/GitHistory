@@ -14,7 +14,7 @@ import { errorMessage } from "./transport";
 import { Button, useUi } from "./ui/Dialogs";
 
 type DiffCenter = Extract<CenterView, { kind: "diff" }>;
-type Mode = "side" | "hunk";
+type Mode = "side" | "file" | "hunk";
 const CTX = 3;
 let lastMode: Mode | null = null;
 let lastIgnoreWs = false;
@@ -97,7 +97,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
   const load = useCallback(async () => {
     if (image) return;
     try {
-      const full = mode === "side";
+      const full = mode === "side" || mode === "file";
       let text: string;
       if (source.kind === "unstaged") text = await git.diffWorking(repo, file.path, { untracked, ignoreWs, full });
       else if (source.kind === "staged") text = await git.diffWorking(repo, file.path, { staged: true, ignoreWs, full });
@@ -159,12 +159,12 @@ export function DiffView({ view }: { view: DiffCenter }) {
     close();
   };
 
-  // Flat rows for a virtualized list: side-by-side folds long unchanged runs; hunk mode lists lines.
+  // Flat rows for a virtualized list: side-by-side folds long unchanged runs; file and hunk modes list lines.
   const { items, changeAt } = useMemo(() => {
     const out: Item[] = [];
     const changeAt: number[] = [];
     if (!diff || diff.binary) return { items: out, changeAt };
-    if (mode === "hunk") {
+    if (mode === "hunk" || mode === "file") {
       diff.hunks.forEach((h, hi) => {
         out.push({ k: "hunk", hi, key: `h${hi}` });
         h.lines.forEach((_, li) => out.push({ k: "line", hi, li, key: `l${hi}:${li}` }));
@@ -243,7 +243,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
       return (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: t.panel2, flexWrap: "wrap" }}>
           <Text style={{ color: t.dim, fontFamily: t.mono, fontSize: 11, flex: 1 }} numberOfLines={1}>
-            {h.header}
+            {mode === "file" ? `${file.path} — whole file` : h.header}
           </Text>
           {source.kind === "unstaged" && editable && (
             <>
@@ -337,7 +337,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Text style={{ color: t.dim, fontSize: 11 }}>Ignore whitespace</Text>
             <Switch value={ignoreWs} onValueChange={setIgnoreWs} />
-            <Segmented t={t} value={mode} onChange={setMode} options={[{ value: "side", label: "Side-by-side" }, { value: "hunk", label: "Hunk" }]} />
+            <Segmented t={t} value={mode} onChange={setMode} options={[{ value: "side", label: "Side-by-side" }, { value: "file", label: "File" }, { value: "hunk", label: "Hunk" }]} />
           </View>
         )}
         {iconBtn("History", "File history", () => setCenter({ kind: "history", file: file.path }), untracked)}
@@ -363,7 +363,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
           </View>
         </View>
       )}
-      {mode === "hunk" && lineActions ? <View style={{ padding: 6, backgroundColor: t.panel2 }}>{lineActions}</View> : null}
+      {mode !== "side" && lineActions ? <View style={{ padding: 6, backgroundColor: t.panel2 }}>{lineActions}</View> : null}
       {image ? (
         <Text style={{ color: t.dim, padding: 24 }}>Image file — open it on the desktop app to compare visually.</Text>
       ) : error ? (

@@ -10,7 +10,7 @@ import { useUI } from './Overlays';
 import { useRepo } from './RepoContext';
 
 type DiffCenter = Extract<CenterView, { kind: 'diff' }>;
-type Mode = 'side' | 'hunk' | 'split';
+type Mode = 'side' | 'file' | 'hunk' | 'split';
 
 // View preferences persist across files for the session, like a diff tool's toolbar state.
 let lastMode: Mode = 'side';
@@ -69,8 +69,8 @@ export function DiffView({ view }: { view: DiffCenter }) {
     if (image) return;
     try {
       let text: string;
-      // Side-by-side shows the whole file (PyCharm-style), so it asks git for full context.
-      const full = mode === 'side';
+      // Side-by-side and File show the whole file, so they ask git for full context.
+      const full = mode === 'side' || mode === 'file';
       if (source.kind === 'unstaged') text = await git.diffWorking(repo, file.path, { untracked, ignoreWs, full });
       else if (source.kind === 'staged') text = await git.diffWorking(repo, file.path, { staged: true, ignoreWs, full });
       else if (source.kind === 'commit') text = await git.diffCommit(repo, source.hash, file.path, file.oldPath, ignoreWs, full);
@@ -194,6 +194,9 @@ export function DiffView({ view }: { view: DiffCenter }) {
               <button className={mode === 'side' ? 'on' : ''} onClick={() => setMode('side')} title="Whole file, old and new side by side">
                 Side-by-side
               </button>
+              <button className={mode === 'file' ? 'on' : ''} onClick={() => setMode('file')} title="The whole new file, changes highlighted in place">
+                File
+              </button>
               <button className={mode === 'hunk' ? 'on' : ''} onClick={() => setMode('hunk')}>
                 Hunk
               </button>
@@ -284,7 +287,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
             return (
               <div className="hunk" key={hi}>
                 <div className="hunk-head">
-                  <span className="h">{h.header}</span>
+                  <span className="h">{mode === 'file' ? `${file.path} — whole file` : h.header}</span>
                   {source.kind === 'unstaged' && editable && (
                     <>
                       <button className="btn red" onClick={() => applyHunk(h, 'discard', lines)}>
@@ -301,7 +304,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
                     </button>
                   )}
                 </div>
-                {mode === 'hunk' ? (
+                {mode === 'hunk' || mode === 'file' ? (
                   h.lines.map((l, li) => (
                     <Line
                       key={li}
