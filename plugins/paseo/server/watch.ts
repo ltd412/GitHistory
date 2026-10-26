@@ -11,7 +11,9 @@ const FALLBACK_POLL_MS = 2000;
 
 // WHY: object writes and lock files fire on every git command but never change what the UI shows on their
 // own; the ref/index/HEAD rename that follows them does.
-const IGNORED = /(^|[\\/])(\.git[\\/]objects|node_modules)([\\/]|$)|\.lock$/;
+// Windows also reports the bare ".git" directory when something inside it changes; the meaningful
+// changes (HEAD, refs, index) always arrive with their own path, so the directory event alone is noise.
+const IGNORED = /(^|[\\/])(\.git[\\/]objects|node_modules)([\\/]|$)|\.lock$|^\.git$/;
 
 /** Long, real form of a path (resolves symlinks and Windows 8.3 short names); the input if it does not exist. */
 function canonical(p: string): string {
