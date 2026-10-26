@@ -98,7 +98,7 @@ function Shell() {
       { header: 'Appearance' },
       { label: `${mark('dark')}Dark`, onClick: () => void onSettings({ theme: 'dark' }) },
       { label: `${mark('light')}Light`, onClick: () => void onSettings({ theme: 'light' }) },
-      { label: `${mark('system')}Match macOS`, onClick: () => void onSettings({ theme: 'system' }) },
+      { label: `${mark('system')}Match system`, onClick: () => void onSettings({ theme: 'system' }) },
       {
         label: `${mark('schedule')}Auto by time — light ${settings.lightFrom ?? '06:00'} → dark ${settings.darkFrom ?? '18:00'}`,
         onClick: () => void onSettings({ theme: 'schedule' }),
@@ -242,7 +242,7 @@ function Shell() {
         <div className="tab-add" onClick={newTab} title={keyLabel('New tab (⌘T)')}>
           <IconPlus width={14} height={14} />
         </div>
-        <div className="theme-btn" onClick={themeMenu} title="Appearance: dark / light / match macOS / auto by time">
+        <div className="theme-btn" onClick={themeMenu} title="Appearance: dark / light / match system / auto by time">
           {theme === 'light' ? <IconSun /> : <IconMoon />}
           {settings.theme === 'schedule' ? 'Auto' : settings.theme === 'system' ? 'System' : theme === 'light' ? 'Light' : 'Dark'}
         </div>

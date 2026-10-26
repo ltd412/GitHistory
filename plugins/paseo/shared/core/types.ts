@@ -109,7 +109,7 @@ export interface Settings {
   customCommands: CustomCommand[];
   compact: boolean;
   pushAfterCommit: boolean;
-  /** dark · light · follow macOS · switch by time of day (light from `lightFrom`, dark from `darkFrom`). */
+  /** dark · light · follow the system appearance · switch by time of day (light from `lightFrom`, dark from `darkFrom`). */
   theme: 'dark' | 'light' | 'system' | 'schedule';
   lightFrom: string;
   darkFrom: string;

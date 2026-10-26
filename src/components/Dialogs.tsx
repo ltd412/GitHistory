@@ -237,7 +237,7 @@ export function SettingsDialog({
         <select className="input" value={s.theme ?? 'dark'} onChange={(e) => setS({ ...s, theme: e.target.value as Settings['theme'] })}>
           <option value="dark">Dark</option>
           <option value="light">Light</option>
-          <option value="system">Match macOS</option>
+          <option value="system">Match system</option>
           <option value="schedule">Auto by time of day</option>
         </select>
       </label>
