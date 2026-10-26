@@ -1,0 +1,5 @@
+# LF everywhere: shared sources are copied byte-for-byte into the plugin and checked for drift.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary

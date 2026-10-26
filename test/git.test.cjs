@@ -339,7 +339,7 @@ test('repoSummary and scanRepos for the repository manager', async () => {
   }
   fs.mkdirSync(path.join(root, 'a', 'nested'));
   await g.init(path.join(root, 'a', 'nested'));
-  assert.deepEqual((await g.scanRepos(root)).map((p) => path.relative(root, p)).sort(), ['a', 'b/c']);
+  assert.deepEqual((await g.scanRepos(root)).map((p) => path.relative(root, p)).sort(), ['a', path.join('b', 'c')]);
 });
 
 test('log is in date order so parallel branches interleave instead of keeping lanes open', async () => {

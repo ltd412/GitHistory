@@ -30,13 +30,16 @@ jobs:
           git config --global user.name "CI"
           git config --global user.email "ci@example.com"
           git config --global init.defaultBranch main
+          git config --global core.autocrlf false
       - run: npm ci
+      - name: Plugin dependencies (the app's tests check graph SVG with Paseo's own validator)
+        working-directory: plugins/paseo
+        run: npm ci
       - run: npm run build
       - run: npm test
       - name: Plugin tests
         working-directory: plugins/paseo
         run: |
-          npm ci
           npm run typecheck
           npm test
 
