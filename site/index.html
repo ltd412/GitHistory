@@ -23,7 +23,7 @@
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); }
+  body { margin: 0; font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Ubuntu, system-ui, sans-serif; letter-spacing: .01em; background: var(--bg); color: var(--text); }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
@@ -44,6 +44,11 @@
   .btn small { font-weight: 400; opacity: .85; }
   .others { margin-top: 14px; font-size: 14px; color: var(--dim); }
   .others a { margin: 0 6px; }
+  [hidden] { display: none !important; }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .lang button { border: 0; background: transparent; color: var(--dim); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; }
+  .lang button.on { background: var(--accent); color: var(--accent-text); }
+  .btn.vn { border-color: var(--accent2); }
   .shot { margin: 40px auto 0; max-width: 1080px; }
   .shot img { width: 100%; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); display: block; }
   .shot.light-only { display: none; }
@@ -70,7 +75,7 @@
   .note { background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 6px; padding: 12px 16px; color: var(--dim); font-size: 15px; margin-top: 16px; }
   footer { padding: 64px 0 40px; text-align: center; color: var(--dim); font-size: 14px; }
   @media (max-width: 760px) {
-    header.nav nav { display: none; }
+    header.nav nav a { display: none; }
     .pair, .paseo { grid-template-columns: 1fr; }
   }
 </style>
@@ -81,75 +86,77 @@
     <img src="logo.svg" alt="">
     <b>GitHistory</b>
     <nav>
-      <a href="#features">Features</a>
-      <a href="#install">Install</a>
-      <a href="#paseo">Paseo plugin</a>
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#install" data-i18n="nav.install">Install</a>
+      <a href="#paseo" data-i18n="nav.paseo">Paseo plugin</a>
       <a href="https://github.com/ltd412/GitHistory">GitHub</a>
+      <span class="lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="vi">VI</button></span>
     </nav>
   </header>
 
   <div class="hero">
     <img class="logo" src="logo.svg" alt="GitHistory logo">
-    <h1>See your <span>Git history</span><br>the way it really is</h1>
-    <p class="lead">A free, open-source Git client with a beautiful commit graph, side-by-side diffs and a three-way merge tool — for macOS, Windows and Ubuntu, and as a plugin for Paseo on desktop, web and phones.</p>
+    <h1 data-i18n-html="hero.title">See your <span>Git history</span><br>the way it really is</h1>
+    <p class="lead" data-i18n="hero.lead">A free, open-source Git client with a beautiful commit graph, side-by-side diffs and a three-way merge tool — for macOS, Windows and Ubuntu, and as a plugin for Paseo on desktop, web and phones.</p>
     <div class="downloads" id="downloads">
       <a class="btn primary" id="primary" href="https://github.com/ltd412/GitHistory/releases/latest">Download GitHistory</a>
-      <a class="btn" href="https://github.com/ltd412/GitHistory">★ Source on GitHub</a>
+      <a class="btn" href="https://github.com/ltd412/GitHistory" data-i18n="hero.source">★ Source on GitHub</a>
+      <a class="btn vn" id="vn-ime" href="https://github.com/ltd412/go-tieng-viet-ubuntu" hidden data-i18n="hero.vnime">⌨️ Vietnamese typing on Ubuntu</a>
     </div>
-    <div class="others" id="others">Free · MIT licensed · uses the <code>git</code> you already have</div>
+    <div class="others" id="others" data-i18n-html="hero.others">Free · MIT licensed · uses the <code>git</code> you already have</div>
   </div>
 
   <div class="shot dark-only"><img src="screenshots/graph-dark.png" alt="GitHistory commit graph, dark theme"></div>
   <div class="shot light-only"><img src="screenshots/graph-light.png" alt="GitHistory commit graph, light theme"></div>
 
   <section id="features">
-    <h2>Everything you do with Git, in one window</h2>
-    <p class="sub">Your history as a graph you can act on. Right-click anything for one consistent menu.</p>
+    <h2 data-i18n="f.title">Everything you do with Git, in one window</h2>
+    <p class="sub" data-i18n="f.sub">Your history as a graph you can act on. Right-click anything for one consistent menu.</p>
     <div class="grid">
-      <div class="card"><div class="ico">🌿</div><h3>A graph you can read</h3><p>Every branch in its own coloured lane, merges curving back into their parent, labels attached to their commits, stashes and work in progress in the graph.</p></div>
-      <div class="card"><div class="ico">🔀</div><h3>Merge &amp; rebase safely</h3><p>Pick a merge strategy, get warned before a rebase rewrites pushed commits, abort with one click, undo a merge afterwards.</p></div>
-      <div class="card"><div class="ico">🧩</div><h3>Three-way merge tool</h3><p>Yours | Result | Theirs, apply or ignore each side, edit the result, and walk through every conflicted file in turn.</p></div>
-      <div class="card"><div class="ico">🔍</div><h3>Side-by-side diffs</h3><p>Whole-file diffs with word highlights and folded unchanged lines. Stage, unstage or discard files, hunks or single lines.</p></div>
-      <div class="card"><div class="ico">⏪</div><h3>Undo almost anything</h3><p>Commits, merges, rebases, resets, branch deletions and history edits can be undone and redone.</p></div>
-      <div class="card"><div class="ico">🗂️</div><h3>Compare, blame, history</h3><p>Compare any two revisions or the working tree, blame a file, browse its history, view or restore any version.</p></div>
-      <div class="card"><div class="ico">✏️</div><h3>Edit history</h3><p>Interactive rebase, plus quick reword, squash, fixup, move and drop right from the commit menu.</p></div>
-      <div class="card"><div class="ico">🌓</div><h3>Made for daily use</h3><p>Tabs for many repositories, quick launch, custom commands, compact mode, dark, light or by time of day.</p></div>
+      <div class="card"><div class="ico">🌿</div><h3 data-i18n-html="f.c1h">A graph you can read</h3><p data-i18n="f.c1p">Every branch in its own coloured lane, merges curving back into their parent, labels attached to their commits, stashes and work in progress in the graph.</p></div>
+      <div class="card"><div class="ico">🔀</div><h3 data-i18n-html="f.c2h">Merge &amp; rebase safely</h3><p data-i18n="f.c2p">Pick a merge strategy, get warned before a rebase rewrites pushed commits, abort with one click, undo a merge afterwards.</p></div>
+      <div class="card"><div class="ico">🧩</div><h3 data-i18n-html="f.c3h">Three-way merge tool</h3><p data-i18n="f.c3p">Yours | Result | Theirs, apply or ignore each side, edit the result, and walk through every conflicted file in turn.</p></div>
+      <div class="card"><div class="ico">🔍</div><h3 data-i18n-html="f.c4h">Side-by-side diffs</h3><p data-i18n="f.c4p">Whole-file diffs with word highlights and folded unchanged lines. Stage, unstage or discard files, hunks or single lines.</p></div>
+      <div class="card"><div class="ico">⏪</div><h3 data-i18n-html="f.c5h">Undo almost anything</h3><p data-i18n="f.c5p">Commits, merges, rebases, resets, branch deletions and history edits can be undone and redone.</p></div>
+      <div class="card"><div class="ico">🗂️</div><h3 data-i18n-html="f.c6h">Compare, blame, history</h3><p data-i18n="f.c6p">Compare any two revisions or the working tree, blame a file, browse its history, view or restore any version.</p></div>
+      <div class="card"><div class="ico">✏️</div><h3 data-i18n-html="f.c7h">Edit history</h3><p data-i18n="f.c7p">Interactive rebase, plus quick reword, squash, fixup, move and drop right from the commit menu.</p></div>
+      <div class="card"><div class="ico">🌓</div><h3 data-i18n-html="f.c8h">Made for daily use</h3><p data-i18n="f.c8p">Tabs for many repositories, quick launch, custom commands, compact mode, dark, light or by time of day.</p></div>
     </div>
   </section>
 
   <section>
-    <h2>Review and resolve with confidence</h2>
-    <p class="sub">The two screens you spend the most time in when things get tricky.</p>
+    <h2 data-i18n="r.title">Review and resolve with confidence</h2>
+    <p class="sub" data-i18n="r.sub">The two screens you spend the most time in when things get tricky.</p>
     <div class="pair">
-      <figure><img src="screenshots/diff-dark.png" alt="Side-by-side diff"><figcaption>Side-by-side diff with word-level highlights</figcaption></figure>
-      <figure><img src="screenshots/merge-tool-dark.png" alt="Three-way merge tool"><figcaption>Three-way merge tool</figcaption></figure>
+      <figure><img src="screenshots/diff-dark.png" alt="Side-by-side diff"><figcaption data-i18n="r.diff">Side-by-side diff with word-level highlights</figcaption></figure>
+      <figure><img src="screenshots/merge-tool-dark.png" alt="Three-way merge tool"><figcaption data-i18n="r.merge">Three-way merge tool</figcaption></figure>
     </div>
   </section>
 
   <section id="install">
-    <h2>Install</h2>
-    <p class="sub">Download the file for your system from the <a href="https://github.com/ltd412/GitHistory/releases/latest">latest release</a>. Git must be installed.</p>
+    <h2 data-i18n="i.title">Install</h2>
+    <p class="sub" data-i18n-html="i.sub">Download the file for your system from the <a href="https://github.com/ltd412/GitHistory/releases/latest">latest release</a>. Git must be installed.</p>
     <div class="table-wrap">
       <table>
-        <tr><th>System</th><th>File</th><th>How</th></tr>
-        <tr><td>macOS (Apple Silicon / Intel)</td><td><code>…-mac-arm64.dmg</code> / <code>…-mac-x64.dmg</code></td><td>Open the .dmg, drag GitHistory to Applications. First launch: right-click → Open → Open.</td></tr>
-        <tr><td>Windows 10 / 11</td><td><code>…-win-x64-setup.exe</code> (or portable <code>.zip</code>)</td><td>Run the installer. On the SmartScreen prompt: More info → Run anyway.</td></tr>
+        <tr><th data-i18n="i.sys">System</th><th data-i18n="i.file">File</th><th data-i18n="i.how">How</th></tr>
+        <tr><td>macOS (Apple Silicon / Intel)</td><td><code>…-mac-arm64.dmg</code> / <code>…-mac-x64.dmg</code></td><td data-i18n="i.mac">Open the .dmg, drag GitHistory to Applications. First launch: right-click → Open → Open.</td></tr>
+        <tr><td>Windows 10 / 11</td><td data-i18n-html="i.winfile"><code>…-win-x64-setup.exe</code> (or portable <code>.zip</code>)</td><td data-i18n="i.win">Run the installer. On the SmartScreen prompt: More info → Run anyway.</td></tr>
         <tr><td>Ubuntu / Debian</td><td><code>…-linux-amd64.deb</code></td><td><code>sudo apt install ./GitHistory-*-linux-amd64.deb</code></td></tr>
-        <tr><td>Any Linux</td><td><code>…-linux-x86_64.AppImage</code></td><td><code>chmod +x</code> it and run it.</td></tr>
+        <tr><td data-i18n="i.anylinux">Any Linux</td><td><code>…-linux-x86_64.AppImage</code></td><td data-i18n-html="i.appimage"><code>chmod +x</code> it and run it.</td></tr>
       </table>
     </div>
-    <div class="note">The builds are not code-signed yet, which is why macOS and Windows ask for confirmation the first time.</div>
+    <div class="note" data-i18n="i.note">The builds are not code-signed yet, which is why macOS and Windows ask for confirmation the first time.</div>
   </section>
 
   <section id="paseo">
-    <h2>Also inside Paseo — on any device</h2>
-    <p class="sub">The same graph, diffs and merge tool as a <a href="https://paseo.sh">Paseo</a> plugin: open several projects as tabs from Paseo's sidebar, on desktop, web or your phone.</p>
+    <h2 data-i18n="p.title">Also inside Paseo — on any device</h2>
+    <p class="sub" data-i18n-html="p.sub">The same graph, diffs and merge tool as a <a href="https://paseo.sh">Paseo</a> plugin: open several projects as tabs from Paseo's sidebar, on desktop, web or your phone.</p>
     <div class="paseo">
       <img src="screenshots/paseo-plugin.png" alt="GitHistory in Paseo">
       <img src="screenshots/paseo-phone.png" alt="GitHistory in Paseo on a phone">
     </div>
     <pre>paseo plugin install https://github.com/ltd412/GitHistory.git:plugins/paseo</pre>
-    <div class="note">The plugin runs <code>git</code> on the machine that runs the Paseo daemon and nothing else. Anyone who can sign in to that daemon can browse its folders and run git there — keep it behind a password on a trusted network.</div>
+    <div class="note" data-i18n-html="p.note">The plugin runs <code>git</code> on the machine that runs the Paseo daemon and nothing else. Anyone who can sign in to that daemon can browse its folders and run git there — keep it behind a password on a trusted network.</div>
   </section>
 
   <footer>
@@ -159,44 +166,106 @@
 </div>
 
 <script>
+// ---------------------------------------------------------------- language (EN / VI)
+const VI = {
+  'nav.features': 'Tính năng', 'nav.install': 'Cài đặt', 'nav.paseo': 'Plugin Paseo',
+  'hero.title': 'Nhìn <span>lịch sử Git</span><br>đúng như nó vốn là',
+  'hero.lead': 'Ứng dụng Git miễn phí, mã nguồn mở: graph commit đẹp mắt, diff song song và công cụ giải conflict 3 cột — cho macOS, Windows, Ubuntu, và plugin cho Paseo trên máy tính, web lẫn điện thoại.',
+  'hero.source': '★ Mã nguồn trên GitHub',
+  'hero.vnime': '⌨️ Gõ tiếng Việt trên Ubuntu',
+  'hero.others': 'Miễn phí · Giấy phép MIT · dùng chính <code>git</code> trên máy bạn',
+  'f.title': 'Mọi thao tác Git, trong một cửa sổ',
+  'f.sub': 'Lịch sử hiện thành graph bạn thao tác trực tiếp được. Chuột phải vào bất cứ đâu cũng ra cùng một menu.',
+  'f.c1h': 'Graph dễ đọc', 'f.c1p': 'Mỗi nhánh một làn màu, merge cong về nhánh cha, nhãn branch/tag gắn đúng commit, stash và thay đổi chưa commit hiện ngay trên graph.',
+  'f.c2h': 'Merge &amp; rebase an toàn', 'f.c2p': 'Chọn kiểu merge, được cảnh báo trước khi rebase viết lại commit đã push, Abort một chạm, Undo merge sau đó.',
+  'f.c3h': 'Giải conflict 3 cột', 'f.c3p': 'Yours | Result | Theirs: lấy hoặc bỏ từng bên, sửa trực tiếp kết quả, đi lần lượt qua mọi file bị conflict.',
+  'f.c4h': 'Diff song song', 'f.c4p': 'Diff cả file, tô sáng từng từ, gấp các dòng không đổi. Stage, unstage hoặc huỷ theo file, hunk hay từng dòng.',
+  'f.c5h': 'Undo gần như mọi thứ', 'f.c5p': 'Commit, merge, rebase, reset, xoá branch, sửa lịch sử — đều undo và redo được.',
+  'f.c6h': 'So sánh, blame, lịch sử', 'f.c6p': 'So sánh hai revision bất kỳ hoặc với working tree, blame file, xem lịch sử, xem hoặc khôi phục mọi phiên bản.',
+  'f.c7h': 'Sửa lịch sử', 'f.c7p': 'Interactive rebase, cùng reword, squash, fixup, đổi thứ tự và drop ngay từ menu commit.',
+  'f.c8h': 'Hợp dùng hằng ngày', 'f.c8p': 'Nhiều repo dạng tab, mở nhanh, lệnh tuỳ chỉnh, chế độ gọn, giao diện tối/sáng hoặc đổi theo giờ.',
+  'r.title': 'Xem thay đổi và giải conflict tự tin', 'r.sub': 'Hai màn hình bạn dùng nhiều nhất khi mọi thứ rối lên.',
+  'r.diff': 'Diff song song, tô sáng từng từ', 'r.merge': 'Công cụ giải conflict 3 cột',
+  'i.title': 'Cài đặt',
+  'i.sub': 'Tải file đúng hệ điều hành ở <a href="https://github.com/ltd412/GitHistory/releases/latest">bản phát hành mới nhất</a>. Máy cần cài sẵn Git.',
+  'i.sys': 'Hệ điều hành', 'i.file': 'File', 'i.how': 'Cách cài',
+  'i.mac': 'Mở file .dmg, kéo GitHistory vào Applications. Lần đầu mở: chuột phải → Open → Open.',
+  'i.winfile': '<code>…-win-x64-setup.exe</code> (hoặc bản portable <code>.zip</code>)',
+  'i.win': 'Chạy bộ cài. Nếu SmartScreen cảnh báo: More info → Run anyway.',
+  'i.anylinux': 'Linux bất kỳ', 'i.appimage': '<code>chmod +x</code> rồi chạy.',
+  'i.note': 'Các bản build chưa được ký số, nên macOS và Windows sẽ hỏi xác nhận ở lần mở đầu tiên.',
+  'p.title': 'Có cả trong Paseo — trên mọi thiết bị',
+  'p.sub': 'Cùng graph, diff và công cụ giải conflict dưới dạng plugin <a href="https://paseo.sh">Paseo</a>: mở nhiều project dạng tab từ sidebar của Paseo, trên máy tính, web hay điện thoại.',
+  'p.note': 'Plugin chỉ chạy <code>git</code> trên máy chạy daemon Paseo. Ai đăng nhập được daemon đó đều duyệt được thư mục và chạy git ở đó — hãy đặt mật khẩu và chỉ dùng trong mạng tin cậy.',
+  'dl.default': 'Tải GitHistory', 'dl.for': 'Tải cho {os}',
+};
+const EN = { 'dl.default': 'Download GitHistory', 'dl.for': 'Download for {os}' };
+// English texts live in the page itself; remember them so switching back restores them.
+document.querySelectorAll('[data-i18n]').forEach((el) => (EN[el.dataset.i18n] = el.textContent));
+document.querySelectorAll('[data-i18n-html]').forEach((el) => (EN[el.dataset.i18nHtml] = el.innerHTML));
+let lang = 'en';
+try { lang = localStorage.getItem('lang') || (/^vi\b/i.test(navigator.language) ? 'vi' : 'en'); } catch { /* storage blocked */ }
+const t = (k) => (lang === 'vi' ? VI : EN)[k] ?? EN[k] ?? k;
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml)));
+  document.querySelectorAll('.lang button').forEach((b) => b.classList.toggle('on', b.dataset.lang === lang));
+  renderDownloads();
+}
+document.querySelectorAll('.lang button').forEach((b) =>
+  b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    try { localStorage.setItem('lang', lang); } catch { /* storage blocked */ }
+    applyLang();
+  }),
+);
+
+// ---------------------------------------------------------------- downloads
 // Point the main button at the right installer for this visitor, from the latest GitHub release.
-(async () => {
-  const ua = navigator.userAgent;
-  const os = /Mac/i.test(ua) ? 'mac' : /Win/i.test(ua) ? 'win' : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? 'linux' : null;
-  const label = { mac: 'macOS', win: 'Windows', linux: 'Ubuntu / Linux' };
+const ua = navigator.userAgent;
+const os = /Mac/i.test(ua) ? 'mac' : /Win/i.test(ua) ? 'win' : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? 'linux' : null;
+const osLabel = { mac: 'macOS', win: 'Windows', linux: 'Ubuntu / Linux' };
+// Browsers cannot tell Ubuntu from other Linux (Chrome only says "Linux"): offer the Ubuntu IME on any Linux.
+if (os === 'linux') document.getElementById('vn-ime').hidden = false;
+let release = null;
+function renderDownloads() {
   const primary = document.getElementById('primary');
-  if (os) primary.textContent = 'Download for ' + label[os];
-  try {
-    const res = await fetch('https://api.github.com/repos/ltd412/GitHistory/releases/latest');
-    if (!res.ok) return;
-    const rel = await res.json();
-    const assets = rel.assets || [];
-    const find = (re) => assets.find((a) => re.test(a.name));
-    const pick = {
-      mac: find(/-mac-arm64\.dmg$/),
-      win: find(/-win-x64-setup\.exe$/),
-      linux: find(/-linux-amd64\.deb$/) || find(/\.AppImage$/),
-    };
-    if (os && pick[os]) {
-      primary.href = pick[os].browser_download_url;
-      primary.innerHTML = 'Download for ' + label[os] + ' <small>' + rel.tag_name + '</small>';
+  primary.textContent = os ? t('dl.for').replace('{os}', osLabel[os]) : t('dl.default');
+  if (!release) return;
+  const find = (re) => release.assets.find((a) => re.test(a.name));
+  const pick = { mac: find(/-mac-arm64\.dmg$/), win: find(/-win-x64-setup\.exe$/), linux: find(/-linux-amd64\.deb$/) || find(/\.AppImage$/) };
+  if (os && pick[os]) {
+    primary.href = pick[os].browser_download_url;
+    const small = document.createElement('small');
+    small.textContent = ' ' + release.tag_name;
+    primary.appendChild(small);
+  }
+  const links = [
+    ['macOS Apple Silicon', find(/-mac-arm64\.dmg$/)], ['macOS Intel', find(/-mac-x64\.dmg$/)],
+    ['Windows', find(/-win-x64-setup\.exe$/)], ['Ubuntu .deb', find(/-linux-amd64\.deb$/)], ['AppImage', find(/\.AppImage$/)],
+  ].filter(([, a]) => a);
+  if (links.length) {
+    const others = document.getElementById('others');
+    others.textContent = release.tag_name + ' · ';
+    for (const [name, a] of links) {
+      const el = document.createElement('a');
+      el.href = a.browser_download_url;
+      el.textContent = name;
+      others.appendChild(el);
     }
-    const links = [
-      ['macOS Apple Silicon', find(/-mac-arm64\.dmg$/)], ['macOS Intel', find(/-mac-x64\.dmg$/)],
-      ['Windows', find(/-win-x64-setup\.exe$/)], ['Ubuntu .deb', find(/-linux-amd64\.deb$/)], ['AppImage', find(/\.AppImage$/)],
-    ].filter(([, a]) => a);
-    if (links.length) {
-      const others = document.getElementById('others');
-      others.textContent = rel.tag_name + ' · ';
-      for (const [name, a] of links) {
-        const el = document.createElement('a');
-        el.href = a.browser_download_url;
-        el.textContent = name;
-        others.appendChild(el);
-      }
+  }
+}
+applyLang();
+fetch('https://api.github.com/repos/ltd412/GitHistory/releases/latest')
+  .then((r) => (r.ok ? r.json() : null))
+  .then((rel) => {
+    if (rel && Array.isArray(rel.assets)) {
+      release = rel;
+      renderDownloads();
     }
-  } catch { /* offline or rate-limited: the button still opens the releases page */ }
-})();
+  })
+  .catch(() => { /* offline or rate-limited: the button still opens the releases page */ });
 </script>
 </body>
 </html>
