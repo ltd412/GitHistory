@@ -5,9 +5,9 @@
   "main": "electron/main.cjs",
   "private": true,
   "scripts": {
-    "dev": "npm run build:core && concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV=1 electron .\"",
+    "dev": "npm run build:core && concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV=1 node scripts/run-electron.cjs .\"",
     "build": "npm run build:core && tsc --noEmit && vite build",
-    "start": "npm run build:core && electron .",
+    "start": "npm run build:core && node scripts/run-electron.cjs .",
     "typecheck": "tsc --noEmit",
     "web": "npm run build:core && vite build && node scripts/web-bridge.cjs",
     "test": "npm run build:core && node --test test/*.test.*",
@@ -30,7 +30,7 @@
     "wait-on": "^8.0.1"
   },
   "allowScripts": {
-    "electron@31.7.7": true,
+    "electron@44.7.0": true,
     "esbuild@0.21.5": true
   },
   "productName": "GitHistory",
@@ -99,6 +99,10 @@
     },
     "linux": {
       "category": "Development",
+      "icon": "build/icons",
+      "desktop": {
+        "StartupWMClass": "githistory"
+      },
       "target": [
         {
           "target": "AppImage",
@@ -119,10 +123,12 @@
     "deb": {
       "depends": [
         "git"
-      ]
+      ],
+      "afterInstall": "build/linux-after-install.sh"
     },
     "publish": null,
-    "afterSign": "scripts/adhoc-sign.cjs"
+    "afterSign": "scripts/adhoc-sign.cjs",
+    "afterPack": "scripts/linux-wrapper.cjs"
   },
   "license": "MIT"
 }
