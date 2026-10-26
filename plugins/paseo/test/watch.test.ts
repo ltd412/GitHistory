@@ -140,7 +140,8 @@ test("registry: a picked directory opens without being a workspace; non-repos an
   const { repo } = makeRepo();
   const paseo = { workspaces: { list: async () => ({ entries: [] }) } } as never;
   const h = await resolve(paseo, { kind: "path", path: repo });
-  assert.equal(h.toplevel, repo);
+  // git reports C:/… on Windows; compare real long paths (8.3 short names in TEMP on CI).
+  assert.equal(fs.realpathSync.native(h.toplevel!), fs.realpathSync.native(repo));
   const plain = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "githistory-plain-")));
   bases.push(plain);
   assert.equal((await resolve(paseo, { kind: "path", path: plain })).toplevel, null);

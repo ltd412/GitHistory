@@ -13,6 +13,15 @@ const FALLBACK_POLL_MS = 2000;
 // own; the ref/index/HEAD rename that follows them does.
 const IGNORED = /(^|[\\/])(\.git[\\/]objects|node_modules)([\\/]|$)|\.lock$/;
 
+/** Long, real form of a path (resolves symlinks and Windows 8.3 short names); the input if it does not exist. */
+function canonical(p: string): string {
+  try {
+    return fs.realpathSync.native(p);
+  } catch {
+    return path.resolve(p);
+  }
+}
+
 export type RepoStateName = "clean" | "merging" | "rebasing" | "cherry-picking" | "reverting";
 
 export interface Watched {
@@ -48,13 +57,16 @@ export async function ensureWatching(w: Watched): Promise<void> {
     }, DEBOUNCE_MS);
   };
   stops.push(() => timer && clearTimeout(timer));
-  const dirs = [w.toplevel];
+  // Each watched directory with the prefix that makes its event paths read like paths under the worktree.
+  const dirs: { dir: string; prefix: string }[] = [{ dir: w.toplevel, prefix: "" }];
   const gitDir = await git.git(w.toplevel, ["rev-parse", "--absolute-git-dir"]).then((s: string) => s.trim(), () => null);
-  if (gitDir && path.relative(w.toplevel, gitDir).startsWith("..")) dirs.push(gitDir);
-  for (const dir of dirs) {
+  // WHY realpath.native: on Windows git prints C:/Users/runneradmin/… while the worktree may be the 8.3 form
+  // C:\Users\RUNNER~1\…; compared raw, .git looked outside the worktree and was watched twice.
+  if (gitDir && path.relative(canonical(w.toplevel), canonical(gitDir)).startsWith("..")) dirs.push({ dir: gitDir, prefix: ".git/" });
+  for (const { dir, prefix } of dirs) {
     try {
       const watcher = fs.watch(dir, { recursive: true }, (_event, file) => {
-        if (file && IGNORED.test(String(file))) return;
+        if (file && IGNORED.test(prefix + String(file))) return;
         bump();
       });
       watcher.on("error", () => {}); // a deleted subtree must not crash the daemon
