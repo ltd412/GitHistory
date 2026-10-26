@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="0.55" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- GitHistory logo: a commit graph (trunk, a branch that leaves and merges back) inside a clockwise
+       "history" sweep. Squircle with a margin so it sits well in the macOS Dock and on Windows/Linux. -->
+  <rect x="80" y="80" width="864" height="864" rx="200" fill="url(#bg)"/>
+  <rect x="80" y="80" width="864" height="864" rx="200" fill="url(#shine)"/>
+  <path d="M 661.3 231.2 A 318 318 0 1 1 316.2 261.4" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="30" stroke-linecap="butt"/>
+  <path d="M 371.4 218.3 L 344.5 297.7 L 287.9 225.2 Z" fill="#ffffff" fill-opacity="0.4"/>
+  <g fill="none" stroke="#ffffff" stroke-width="44" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 432 300 L 432 724"/>
+    <path d="M 432 372 C 432 436 592 420 592 488 L 592 536 C 592 604 432 588 432 652"/>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="432" cy="300" r="50"/>
+    <circle cx="432" cy="512" r="50"/>
+    <circle cx="432" cy="724" r="50"/>
+    <circle cx="592" cy="512" r="50"/>
+  </g>
+  <circle cx="592" cy="512" r="22" fill="#2563eb"/>
+</svg>

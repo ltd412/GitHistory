@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHistory — a free Git client with a beautiful commit graph</title>
+<meta name="description" content="Free, open-source Git client for macOS, Windows and Ubuntu: commit graph, side-by-side diffs, three-way merge tool, undo — and a Paseo plugin for desktop, web and phones.">
+<meta property="og:title" content="GitHistory">
+<meta property="og:description" content="A free Git client with a beautiful commit graph, side-by-side diffs and a three-way merge tool.">
+<meta property="og:image" content="screenshots/graph-dark.png">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f7fb; --card: #ffffff; --text: #1d2433; --dim: #5b6475; --line: #e3e7ef;
+    --accent: #2563eb; --accent2: #14b8a6; --accent-text: #ffffff; --shadow: 0 20px 50px rgba(25, 40, 80, .14);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11141a; --bg2: #171b23; --card: #1b2029; --text: #e6e9ef; --dim: #9aa3b5; --line: #2a303c;
+      --accent: #4f8cff; --accent2: #2dd4bf; --shadow: 0 20px 60px rgba(0, 0, 0, .45);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  header.nav { display: flex; align-items: center; gap: 12px; padding: 18px 0; }
+  header.nav img { width: 34px; height: 34px; }
+  header.nav b { font-size: 18px; }
+  header.nav nav { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
+  header.nav nav a { color: var(--dim); }
+  .hero { text-align: center; padding: 48px 0 24px; }
+  .hero img.logo { width: 112px; height: 112px; }
+  .hero h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; margin: 18px 0 12px; letter-spacing: -.02em; }
+  .hero h1 span { background: linear-gradient(90deg, var(--accent2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--dim); max-width: 720px; margin: 0 auto 28px; }
+  .downloads { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 10px; font-weight: 600; font-size: 16px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+  .btn:hover { text-decoration: none; border-color: var(--accent); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent2), var(--accent)); color: var(--accent-text); border: 0; box-shadow: 0 8px 22px rgba(37, 99, 235, .3); }
+  .btn small { font-weight: 400; opacity: .85; }
+  .others { margin-top: 14px; font-size: 14px; color: var(--dim); }
+  .others a { margin: 0 6px; }
+  .shot { margin: 40px auto 0; max-width: 1080px; }
+  .shot img { width: 100%; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); display: block; }
+  .shot.light-only { display: none; }
+  @media (prefers-color-scheme: light) { .shot.dark-only { display: none; } .shot.light-only { display: block; } }
+  section { padding: 72px 0 0; }
+  section h2 { font-size: clamp(26px, 4vw, 36px); text-align: center; margin: 0 0 10px; letter-spacing: -.01em; }
+  section p.sub { text-align: center; color: var(--dim); margin: 0 auto 36px; max-width: 680px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--dim); font-size: 15px; }
+  .card .ico { font-size: 22px; margin-bottom: 8px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pair figure { margin: 0; }
+  .pair img { width: 100%; border-radius: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .pair figcaption { text-align: center; color: var(--dim); font-size: 14px; margin-top: 10px; }
+  .paseo { display: grid; grid-template-columns: 2.6fr 1fr; gap: 20px; align-items: end; }
+  .paseo img { width: 100%; border-radius: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  pre { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  td, th { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .note { background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 6px; padding: 12px 16px; color: var(--dim); font-size: 15px; margin-top: 16px; }
+  footer { padding: 64px 0 40px; text-align: center; color: var(--dim); font-size: 14px; }
+  @media (max-width: 760px) {
+    header.nav nav { display: none; }
+    .pair, .paseo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="nav">
+    <img src="logo.svg" alt="">
+    <b>GitHistory</b>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#paseo">Paseo plugin</a>
+      <a href="https://github.com/ltd412/GitHistory">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <img class="logo" src="logo.svg" alt="GitHistory logo">
+    <h1>See your <span>Git history</span><br>the way it really is</h1>
+    <p class="lead">A free, open-source Git client with a beautiful commit graph, side-by-side diffs and a three-way merge tool — for macOS, Windows and Ubuntu, and as a plugin for Paseo on desktop, web and phones.</p>
+    <div class="downloads" id="downloads">
+      <a class="btn primary" id="primary" href="https://github.com/ltd412/GitHistory/releases/latest">Download GitHistory</a>
+      <a class="btn" href="https://github.com/ltd412/GitHistory">★ Source on GitHub</a>
+    </div>
+    <div class="others" id="others">Free · MIT licensed · uses the <code>git</code> you already have</div>
+  </div>
+
+  <div class="shot dark-only"><img src="screenshots/graph-dark.png" alt="GitHistory commit graph, dark theme"></div>
+  <div class="shot light-only"><img src="screenshots/graph-light.png" alt="GitHistory commit graph, light theme"></div>
+
+  <section id="features">
+    <h2>Everything you do with Git, in one window</h2>
+    <p class="sub">Your history as a graph you can act on. Right-click anything for one consistent menu.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🌿</div><h3>A graph you can read</h3><p>Every branch in its own coloured lane, merges curving back into their parent, labels attached to their commits, stashes and work in progress in the graph.</p></div>
+      <div class="card"><div class="ico">🔀</div><h3>Merge &amp; rebase safely</h3><p>Pick a merge strategy, get warned before a rebase rewrites pushed commits, abort with one click, undo a merge afterwards.</p></div>
+      <div class="card"><div class="ico">🧩</div><h3>Three-way merge tool</h3><p>Yours | Result | Theirs, apply or ignore each side, edit the result, and walk through every conflicted file in turn.</p></div>
+      <div class="card"><div class="ico">🔍</div><h3>Side-by-side diffs</h3><p>Whole-file diffs with word highlights and folded unchanged lines. Stage, unstage or discard files, hunks or single lines.</p></div>
+      <div class="card"><div class="ico">⏪</div><h3>Undo almost anything</h3><p>Commits, merges, rebases, resets, branch deletions and history edits can be undone and redone.</p></div>
+      <div class="card"><div class="ico">🗂️</div><h3>Compare, blame, history</h3><p>Compare any two revisions or the working tree, blame a file, browse its history, view or restore any version.</p></div>
+      <div class="card"><div class="ico">✏️</div><h3>Edit history</h3><p>Interactive rebase, plus quick reword, squash, fixup, move and drop right from the commit menu.</p></div>
+      <div class="card"><div class="ico">🌓</div><h3>Made for daily use</h3><p>Tabs for many repositories, quick launch, custom commands, compact mode, dark, light or by time of day.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Review and resolve with confidence</h2>
+    <p class="sub">The two screens you spend the most time in when things get tricky.</p>
+    <div class="pair">
+      <figure><img src="screenshots/diff-dark.png" alt="Side-by-side diff"><figcaption>Side-by-side diff with word-level highlights</figcaption></figure>
+      <figure><img src="screenshots/merge-tool-dark.png" alt="Three-way merge tool"><figcaption>Three-way merge tool</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <p class="sub">Download the file for your system from the <a href="https://github.com/ltd412/GitHistory/releases/latest">latest release</a>. Git must be installed.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>System</th><th>File</th><th>How</th></tr>
+        <tr><td>macOS (Apple Silicon / Intel)</td><td><code>…-mac-arm64.dmg</code> / <code>…-mac-x64.dmg</code></td><td>Open the .dmg, drag GitHistory to Applications. First launch: right-click → Open → Open.</td></tr>
+        <tr><td>Windows 10 / 11</td><td><code>…-win-x64-setup.exe</code> (or portable <code>.zip</code>)</td><td>Run the installer. On the SmartScreen prompt: More info → Run anyway.</td></tr>
+        <tr><td>Ubuntu / Debian</td><td><code>…-linux-amd64.deb</code></td><td><code>sudo apt install ./GitHistory-*-linux-amd64.deb</code></td></tr>
+        <tr><td>Any Linux</td><td><code>…-linux-x86_64.AppImage</code></td><td><code>chmod +x</code> it and run it.</td></tr>
+      </table>
+    </div>
+    <div class="note">The builds are not code-signed yet, which is why macOS and Windows ask for confirmation the first time.</div>
+  </section>
+
+  <section id="paseo">
+    <h2>Also inside Paseo — on any device</h2>
+    <p class="sub">The same graph, diffs and merge tool as a <a href="https://paseo.sh">Paseo</a> plugin: open several projects as tabs from Paseo's sidebar, on desktop, web or your phone.</p>
+    <div class="paseo">
+      <img src="screenshots/paseo-plugin.png" alt="GitHistory in Paseo">
+      <img src="screenshots/paseo-phone.png" alt="GitHistory in Paseo on a phone">
+    </div>
+    <pre>paseo plugin install https://github.com/ltd412/GitHistory.git:plugins/paseo</pre>
+    <div class="note">The plugin runs <code>git</code> on the machine that runs the Paseo daemon and nothing else. Anyone who can sign in to that daemon can browse its folders and run git there — keep it behind a password on a trusted network.</div>
+  </section>
+
+  <footer>
+    <img src="logo.svg" alt="" width="40" height="40"><br>
+    GitHistory · <a href="https://github.com/ltd412/GitHistory">GitHub</a> · <a href="https://github.com/ltd412/GitHistory/releases">Releases</a> · MIT License
+  </footer>
+</div>
+
+<script>
+// Point the main button at the right installer for this visitor, from the latest GitHub release.
+(async () => {
+  const ua = navigator.userAgent;
+  const os = /Mac/i.test(ua) ? 'mac' : /Win/i.test(ua) ? 'win' : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? 'linux' : null;
+  const label = { mac: 'macOS', win: 'Windows', linux: 'Ubuntu / Linux' };
+  const primary = document.getElementById('primary');
+  if (os) primary.textContent = 'Download for ' + label[os];
+  try {
+    const res = await fetch('https://api.github.com/repos/ltd412/GitHistory/releases/latest');
+    if (!res.ok) return;
+    const rel = await res.json();
+    const assets = rel.assets || [];
+    const find = (re) => assets.find((a) => re.test(a.name));
+    const pick = {
+      mac: find(/-mac-arm64\.dmg$/),
+      win: find(/-win-x64-setup\.exe$/),
+      linux: find(/-linux-amd64\.deb$/) || find(/\.AppImage$/),
+    };
+    if (os && pick[os]) {
+      primary.href = pick[os].browser_download_url;
+      primary.innerHTML = 'Download for ' + label[os] + ' <small>' + rel.tag_name + '</small>';
+    }
+    const links = [
+      ['macOS Apple Silicon', find(/-mac-arm64\.dmg$/)], ['macOS Intel', find(/-mac-x64\.dmg$/)],
+      ['Windows', find(/-win-x64-setup\.exe$/)], ['Ubuntu .deb', find(/-linux-amd64\.deb$/)], ['AppImage', find(/\.AppImage$/)],
+    ].filter(([, a]) => a);
+    if (links.length) {
+      const others = document.getElementById('others');
+      others.textContent = rel.tag_name + ' · ';
+      for (const [name, a] of links) {
+        const el = document.createElement('a');
+        el.href = a.browser_download_url;
+        el.textContent = name;
+        others.appendChild(el);
+      }
+    }
+  } catch { /* offline or rate-limited: the button still opens the releases page */ }
+})();
+</script>
+</body>
+</html>

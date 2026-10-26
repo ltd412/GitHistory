@@ -1,0 +1,96 @@
+# Tests on macOS, Windows and Ubuntu; builds the desktop app for all three; on a `v*` tag, publishes the
+# installers as a GitHub release. Builds are not code-signed (macOS is ad-hoc signed, see scripts/adhoc-sign.cjs).
+name: Build & release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Git identity for test repositories
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@example.com"
+          git config --global init.defaultBranch main
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - name: Plugin tests
+        working-directory: plugins/paseo
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac
+          - os: windows-latest
+            target: --win
+          - os: ubuntu-latest
+            target: --linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Package
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ runner.os }}
+          if-no-files-found: error
+          path: |
+            out/*.dmg
+            out/*.zip
+            out/*.exe
+            out/*.AppImage
+            out/*.deb
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+      - name: Plugin package
+        uses: actions/checkout@v4
+        with:
+          path: src
+      - run: cd src/plugins/paseo && npm pack --pack-destination ../../../installers
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: installers/*

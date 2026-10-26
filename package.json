@@ -1,0 +1,128 @@
+{
+  "name": "githistory",
+  "version": "0.1.0",
+  "description": "Free, open-source Git client with a commit graph, side-by-side diffs and a three-way merge tool \u2014 desktop app and Paseo plugin",
+  "main": "electron/main.cjs",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build:core && concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV=1 electron .\"",
+    "build": "npm run build:core && tsc --noEmit && vite build",
+    "start": "npm run build:core && electron .",
+    "typecheck": "tsc --noEmit",
+    "web": "npm run build:core && vite build && node scripts/web-bridge.cjs",
+    "test": "npm run build:core && node --test test/*.test.*",
+    "build:core": "esbuild core-node/index.ts --bundle --platform=node --format=cjs --target=node20 --outfile=electron/core-node.gen.cjs --log-level=warning",
+    "sync-core": "node scripts/sync-core.mjs",
+    "dist": "npm run build && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "44.7.0",
+    "electron-builder": "^25.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.10",
+    "wait-on": "^8.0.1"
+  },
+  "allowScripts": {
+    "electron@31.7.7": true,
+    "esbuild@0.21.5": true
+  },
+  "productName": "GitHistory",
+  "author": {
+    "name": "ltd412"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ltd412/GitHistory.git"
+  },
+  "build": {
+    "appId": "io.github.ltd412.githistory",
+    "productName": "GitHistory",
+    "copyright": "Copyright \u00a9 2026 ltd412",
+    "directories": {
+      "output": "out",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json",
+      "!**/*.map"
+    ],
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "identity": null
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-${version}-win-${arch}-setup.${ext}"
+    },
+    "linux": {
+      "category": "Development",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "maintainer": "ltd412 <ltd412@users.noreply.github.com>",
+      "synopsis": "Git client with commit graph, diffs and merge tool"
+    },
+    "deb": {
+      "depends": [
+        "git"
+      ]
+    },
+    "publish": null,
+    "afterSign": "scripts/adhoc-sign.cjs"
+  },
+  "license": "MIT"
+}

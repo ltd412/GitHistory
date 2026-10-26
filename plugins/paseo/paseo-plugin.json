@@ -1,0 +1,9 @@
+{
+  "id": "githistory",
+  "name": "Git",
+  "description": "Git graph, branches, staging, diffs and merges for your Paseo projects, several at once.",
+  "media": [],
+  "requirements": {
+    "paseo": ">=0.12.0"
+  }
+}
