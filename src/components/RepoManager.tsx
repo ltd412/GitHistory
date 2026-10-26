@@ -55,12 +55,13 @@ export function RepoManager({
     const dir = await app.pickDirectory();
     if (!dir) return;
     const top = await git.isRepoPath(dir);
-    if (!top) return ui.toast('error', 'Not a Git repository', dir);
+    // A folder of projects rather than a repository: add what is inside it.
+    if (!top) return scan(dir);
     if (!managed.some((m) => m.path === top)) save([...managed, { path: top, group: UNGROUPED }]);
   };
 
-  const scan = async () => {
-    const dir = await app.pickDirectory();
+  const scan = async (picked?: string) => {
+    const dir = picked ?? (await app.pickDirectory());
     if (!dir) return;
     const found = await git.scanRepos(dir);
     const fresh = found.filter((p) => !managed.some((m) => m.path === p));
@@ -155,7 +156,7 @@ export function RepoManager({
           <button className="btn" onClick={addRepo}>
             Add repository…
           </button>
-          <button className="btn" onClick={scan}>
+          <button className="btn" onClick={() => void scan()}>
             Scan folder…
           </button>
         </div>

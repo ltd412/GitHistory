@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { app } from './lib/api';
+import { app, errorMessage, git } from './lib/api';
 import { basename } from './lib/format';
 import type { Settings } from './lib/types';
 import { IconFolder, IconMoon, IconPlus, IconSun, IconX } from './components/Icons';
@@ -34,6 +34,8 @@ function Shell() {
   const [dialog, setDialog] = useState<'clone' | 'init' | 'prefs' | null>(null);
   const [menuCommand, setMenuCommand] = useState<{ cmd: string; seq: number } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Repositories found inside a picked folder that is not a repository itself.
+  const [found, setFound] = useState<{ root: string; repos: string[] } | null>(null);
 
   // Restore the tabs that were open last time.
   useEffect(() => {
@@ -143,8 +145,25 @@ function Shell() {
       const picked = dir ?? (await app.pickDirectory());
       if (!picked) return;
       const repo = await app.openRepo(picked);
-      if (!repo) return ui.toast('error', 'Not a Git repository', picked);
-      openInTab(repo);
+      if (repo) return openInTab(repo);
+      // A folder of projects (e.g. ~/code): offer the repositories inside it instead of failing.
+      const repos = await git.scanRepos(picked).catch(() => [] as string[]);
+      if (repos.length === 1) {
+        const only = await app.openRepo(repos[0]);
+        if (only) return openInTab(only);
+      }
+      if (repos.length) return setFound({ root: picked, repos });
+      const init = await ui.confirm('Not a Git repository', `${picked}\n\nThis folder contains no repositories. Initialize a new one here?`, {
+        confirm: 'Initialize repository',
+      });
+      if (!init) return;
+      try {
+        await app.init(picked);
+        const created = await app.openRepo(picked);
+        if (created) openInTab(created);
+      } catch (e) {
+        ui.toast('error', 'Init failed', errorMessage(e));
+      }
     },
     [ui, openInTab],
   );
@@ -257,6 +276,17 @@ function Shell() {
             { label: 'Preferences', hint: '⌘,', run: () => setDialog('prefs') },
           ]}
           onClose={() => setPaletteOpen(false)}
+        />
+      )}
+      {found && (
+        <Palette
+          placeholder={`${found.repos.length} repositories in ${basename(found.root)} — type to filter`}
+          items={found.repos.map((p) => ({
+            label: p.slice(found.root.replace(/[\\/]$/, '').length + 1) || basename(p),
+            hint: p.replace(/^\/(Users|home)\/[^/]+/, '~'),
+            run: () => void openRepo(p),
+          }))}
+          onClose={() => setFound(null)}
         />
       )}
       {dialog === 'prefs' && <SettingsDialog repo={active?.repo ?? null} settings={settings} onChange={setSettings} onClose={() => setDialog(null)} />}
