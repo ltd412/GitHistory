@@ -145,6 +145,7 @@
         <tr><td data-i18n="i.anylinux">Any Linux</td><td><code>…-linux-x86_64.AppImage</code></td><td data-i18n-html="i.appimage"><code>chmod +x</code> it and run it.</td></tr>
       </table>
     </div>
+    <div class="note" data-i18n-html="i.linux"><b>Linux:</b> on Ubuntu 24.04 the <code>.deb</code> sets up the sandbox and the app icon for you (0.1.2 or newer); if <code>apt</code> refuses because of broken sources use <code>sudo dpkg -i GitHistory-*-linux-amd64.deb</code>. The AppImage needs no install. Typing Vietnamese? See the <a href="https://ltd412.github.io/go-tieng-viet-ubuntu/">Ubuntu guide</a>.</div>
     <div class="note" data-i18n="i.note">The builds are not code-signed yet, which is why macOS and Windows ask for confirmation the first time.</div>
   </section>
 
@@ -193,6 +194,7 @@ const VI = {
   'i.winfile': '<code>…-win-x64-setup.exe</code> (hoặc bản portable <code>.zip</code>)',
   'i.win': 'Chạy bộ cài. Nếu SmartScreen cảnh báo: More info → Run anyway.',
   'i.anylinux': 'Linux bất kỳ', 'i.appimage': '<code>chmod +x</code> rồi chạy.',
+  'i.linux': '<b>Linux:</b> trên Ubuntu 24.04, file <code>.deb</code> tự cấu hình sandbox và icon ứng dụng (từ bản 0.1.2); nếu <code>apt</code> báo lỗi nguồn hỏng, dùng <code>sudo dpkg -i GitHistory-*-linux-amd64.deb</code>. AppImage không cần cài. Cần gõ tiếng Việt? Xem <a href="https://ltd412.github.io/go-tieng-viet-ubuntu/">hướng dẫn cho Ubuntu</a>.',
   'i.note': 'Các bản build chưa được ký số, nên macOS và Windows sẽ hỏi xác nhận ở lần mở đầu tiên.',
   'p.title': 'Có cả trong Paseo — trên mọi thiết bị',
   'p.sub': 'Cùng graph, diff và công cụ giải conflict dưới dạng plugin <a href="https://paseo.sh">Paseo</a>: mở nhiều project dạng tab từ sidebar của Paseo, trên máy tính, web hay điện thoại.',

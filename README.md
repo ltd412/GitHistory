@@ -14,7 +14,7 @@
   <a href="#install">Install</a> ·
   <a href="#paseo-plugin">Paseo plugin</a> ·
   <a href="#build-from-source">Build from source</a> ·
-  <a href="#tiếng-việt">Tiếng Việt</a>
+  <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
 ![GitHistory — commit graph, branches and working tree](docs/screenshots/graph-dark.png)
@@ -72,6 +72,16 @@ Git must be installed (`git --version` in a terminal).
 | Windows 10/11 | `GitHistory-<version>-win-x64-setup.exe` | Installer; or the portable `…-win-x64.zip` |
 | Ubuntu / Debian | `GitHistory-<version>-linux-amd64.deb` | `sudo apt install ./GitHistory-<version>-linux-amd64.deb` |
 | Any Linux | `GitHistory-<version>-linux-x86_64.AppImage` | `chmod +x` it, then run it |
+
+**Linux notes**
+
+- The `.deb` installs the app icon and the Chromium sandbox for you (0.1.2 or newer, tested on Ubuntu 24.04). If `apt`
+  refuses with a sources error, install it directly: `sudo dpkg -i GitHistory-<version>-linux-amd64.deb`.
+- The AppImage needs no installation; it starts unsandboxed because an AppImage cannot be setuid.
+- "System limit for number of file watchers reached" means `fs.inotify.max_user_watches` is exhausted (IDEs and
+  terminals use a lot). 0.1.2+ falls back to polling instead of crashing; to raise the limit:
+  `echo fs.inotify.max_user_watches=524288 | sudo tee /etc/sysctl.d/60-inotify.conf && sudo sysctl --system`.
+- Typing Vietnamese on Ubuntu: [guide](https://ltd412.github.io/go-tieng-viet-ubuntu/).
 
 **The builds are not code-signed yet**, so the first launch asks for confirmation:
 
@@ -132,20 +142,7 @@ Releases are built by GitHub Actions (`.github/workflows/release.yml`) for all t
 
 ## Tiếng Việt
 
-**GitHistory** là ứng dụng Git miễn phí, mã nguồn mở: graph commit trực quan (mỗi nhánh một làn màu, merge
-cong về nhánh cha), diff song song kiểu PyCharm, công cụ giải conflict 3 cột, undo/redo hầu hết thao tác.
-Có bản desktop cho **macOS, Windows, Ubuntu** và bản **plugin cho Paseo** (dùng được trên máy tính, web và
-điện thoại).
-
-**Cài đặt:** tải file đúng hệ điều hành ở trang [Releases](https://github.com/ltd412/GitHistory/releases/latest)
-(máy cần có `git`).
-
-- macOS: mở `.dmg`, kéo GitHistory vào Applications. Lần đầu mở: chuột phải → **Open** → **Open** (bản chưa ký số).
-- Windows: chạy file `…-setup.exe`; nếu SmartScreen cảnh báo, bấm **More info** → **Run anyway**.
-- Ubuntu: `sudo apt install ./GitHistory-<phiên bản>-linux-amd64.deb`, hoặc dùng file `.AppImage`.
-
-**Plugin Paseo:** trên máy chạy daemon Paseo:
-`paseo plugin install https://github.com/ltd412/GitHistory.git:plugins/paseo` → mở mục **Git** trên sidebar.
+Bản đầy đủ bằng tiếng Việt: **[README.vi.md](README.vi.md)**. · Full Vietnamese README: [README.vi.md](README.vi.md).
 
 ## License
 
