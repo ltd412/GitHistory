@@ -4,16 +4,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as git from "./core-node/git";
+import { watchTree } from "./core-node/watch-tree";
 
 export const DEBOUNCE_MS = 400;
 export const IDLE_MS = 10 * 60_000;
-const FALLBACK_POLL_MS = 2000;
-
-// WHY: object writes and lock files fire on every git command but never change what the UI shows on their
-// own; the ref/index/HEAD rename that follows them does.
-// Windows also reports the bare ".git" directory when something inside it changes; the meaningful
-// changes (HEAD, refs, index) always arrive with their own path, so the directory event alone is noise.
-const IGNORED = /(^|[\\/])(\.git[\\/]objects|node_modules)([\\/]|$)|\.lock$|^\.git$/;
 
 /** Long, real form of a path (resolves symlinks and Windows 8.3 short names); the input if it does not exist. */
 function canonical(p: string): string {
@@ -66,28 +60,13 @@ export async function ensureWatching(w: Watched): Promise<void> {
   // C:\Users\RUNNER~1\…; compared raw, .git looked outside the worktree and was watched twice.
   if (gitDir && path.relative(canonical(w.toplevel), canonical(gitDir)).startsWith("..")) dirs.push({ dir: gitDir, prefix: ".git/" });
   for (const { dir, prefix } of dirs) {
-    try {
-      const watcher = fs.watch(dir, { recursive: true }, (_event, file) => {
-        if (file && IGNORED.test(prefix + String(file))) return;
-        bump();
-      });
-      watcher.on("error", () => {}); // a deleted subtree must not crash the daemon
-      stops.push(() => watcher.close());
-    } catch {
-      // Recursive fs.watch unsupported (older Node on Linux — solution.md §9): poll a cheap fingerprint.
-      let last = "";
-      const iv = setInterval(async () => {
-        const fp = await git
-          .git(w.toplevel, ["status", "--porcelain=v2", "--branch"])
-          .then((s: string) => s, () => "");
-        if (fp !== last) {
-          if (last) bump();
-          last = fp;
-        }
-      }, FALLBACK_POLL_MS);
-      stops.push(() => clearInterval(iv));
-      break;
-    }
+    stops.push(
+      watchTree(dir, bump, {
+        prefix,
+        // Recursive fs.watch is unavailable or out of inotify watches (solution.md §9): poll a cheap fingerprint.
+        fingerprint: () => git.git(w.toplevel, ["status", "--porcelain=v2", "--branch"]),
+      }),
+    );
   }
   await readState(w);
   console.info(`STARTED: watcher workspace=${w.workspaceId} dirs=${dirs.length}`);

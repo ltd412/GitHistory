@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 // Built from core-node/*.ts by `npm run build:core` (shared with the Paseo plugin server).
-const { git, expandCommand, powershellQuote, createHistory } = require('./core-node.gen.cjs');
+const { git, expandCommand, powershellQuote, createHistory, watchTree } = require('./core-node.gen.cjs');
 
 const isDev = process.env.VITE_DEV === '1';
 let win = null;
@@ -64,18 +64,17 @@ function watch(repo) {
       if (win && !win.isDestroyed()) win.webContents.send('repo:changed', repo);
     }, 400);
   };
-  try {
-    const w = fs.watch(repo, { recursive: true }, (_ev, file) => {
-      if (!file) return fire();
-      const f = String(file);
-      // Object writes and lock files churn on every git command and never change what we render.
-      if (f.startsWith('.git/objects') || f.endsWith('.lock') || f.includes('node_modules')) return;
-      fire();
-    });
-    watchers.set(repo, w);
-  } catch {
-    /* repo may live on a filesystem without recursive watch support */
-  }
+  // Object writes, lock files and node_modules churn on every git command and never change what we render
+  // (see core-node/watch-tree.ts; also how the Linux inotify limit is survived).
+  const stop = watchTree(repo, fire, {
+    fingerprint: () => git.git(repo, ['status', '--porcelain=v2', '--branch']),
+  });
+  watchers.set(repo, {
+    close: () => {
+      clearTimeout(timer);
+      stop();
+    },
+  });
 }
 function unwatch(repo) {
   const w = watchers.get(repo);
