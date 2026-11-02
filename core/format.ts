@@ -1,29 +1,29 @@
-/** Lane colours tuned for the dark background: bright, saturated. */
+/** Lane colours for the dark background: muted, so long sessions are not tiring (lower saturation and contrast). */
 export const LANE_COLORS = [
-  '#15a0bf',
-  '#0669f7',
-  '#8e00c2',
-  '#c517b6',
-  '#d90171',
-  '#cd0101',
-  '#f25d2e',
-  '#f2ca33',
-  '#7bd938',
-  '#2ece9d',
+  '#4a9db3',
+  '#5a86d4',
+  '#8d56ab',
+  '#b0599f',
+  '#c0587f',
+  '#b55b59',
+  '#d4875f',
+  '#d4bd6c',
+  '#86b862',
+  '#59b79d',
 ];
 
-/** Same hues, deepened for a white background so lines and white-on-colour labels stay legible. */
+/** Same hues, toned down for a light background; still dark enough for white-on-colour labels. */
 export const LANE_COLORS_LIGHT = [
-  '#0b7ea6',
-  '#2257d6',
-  '#7c3aed',
-  '#b4238f',
-  '#cc1f5a',
-  '#c0362c',
-  '#c75a12',
-  '#a07800',
-  '#3b8a1f',
-  '#0f8a73',
+  '#3f8aa6',
+  '#5273c4',
+  '#7d5fc7',
+  '#a65792',
+  '#b85a76',
+  '#ae5a52',
+  '#b87546',
+  '#9a8444',
+  '#5f8f4c',
+  '#468f80',
 ];
 
 let palette = LANE_COLORS;
@@ -38,7 +38,7 @@ export function setLanePalette(theme: 'dark' | 'light') {
 export const laneColor = (i: number) => palette[i % palette.length];
 
 /** Two-digit hex alpha for lane-coloured row bands: subtle on white, a bit stronger on dark. */
-export const bandAlpha = (hasRefs: boolean) => (lightTheme ? (hasRefs ? '1a' : '0b') : hasRefs ? '2e' : '17');
+export const bandAlpha = (hasRefs: boolean) => (lightTheme ? (hasRefs ? '14' : '08') : hasRefs ? '22' : '10');
 export const isLightTheme = () => lightTheme;
 
 export function relativeTime(sec: number): string {
@@ -78,7 +78,7 @@ function hash(s: string): number {
 }
 
 export function avatarColor(key: string): string {
-  return `hsl(${hash(key) % 360} 55% 42%)`;
+  return `hsl(${hash(key) % 360} 38% 46%)`;
 }
 
 export function initials(name: string): string {

@@ -58,6 +58,7 @@ Light theme, or switch automatically by time of day:
 | Files | Blame, file history, view a file at any revision, restore a version, image diff |
 | Remote | Fetch, pull (merge / rebase / ff-only), push with force-with-lease on rejection, add/edit/remove remotes |
 | History | Interactive rebase, quick reword/squash/fixup/move/drop, undo merge, undo/redo |
+| Interface styles | Pick **Kraken** (colourful graph) or **JetBrains** (PyCharm-style Git log: branches tree, filters, table with graph, details pane) on first launch; switch any time from the tab bar or Preferences |
 | Workspace | Several repositories as tabs, repository manager, quick launch, custom commands, dark/light/auto theme |
 
 ## Install
@@ -146,4 +147,4 @@ Bản đầy đủ bằng tiếng Việt: **[README.vi.md](README.vi.md)**. · F
 
 ## License
 
-[MIT](LICENSE) © 2026 ltd412
+[MIT](LICENSE) © 2026 ltd412. The JetBrains-style Git log is derived in part from [OpenIDEA](https://github.com/l0ng-ai/openidea) (Apache-2.0) — see [NOTICE](NOTICE).

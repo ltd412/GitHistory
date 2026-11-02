@@ -14,4 +14,5 @@ contextBridge.exposeInMainWorld('bridge', {
   onRepoChanged: on('repo:changed'),
   onProgress: on('git:progress'),
   onMenu: on('menu'),
+  onUpdate: on('update:state'),
 });

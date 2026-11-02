@@ -5,6 +5,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 // Built from core-node/*.ts by `npm run build:core` (shared with the Paseo plugin server).
 const { git, expandCommand, powershellQuote, createHistory, watchTree } = require('./core-node.gen.cjs');
+const { createUpdater } = require('./updater.cjs');
 
 const isDev = process.env.VITE_DEV === '1';
 let win = null;
@@ -27,6 +28,9 @@ const defaults = {
   theme: 'dark',
   lightFrom: '06:00',
   darkFrom: '18:00',
+  // null until the user picks Kraken or JetBrains on first launch.
+  uiStyle: null,
+  checkUpdates: true,
 };
 function readStore() {
   try {
@@ -46,6 +50,15 @@ function addRecent(repo) {
   const recent = [repo, ...s.recent.filter((r) => r !== repo)].slice(0, 20);
   writeStore({ recent });
 }
+
+// ---------------------------------------------------------------- updates
+
+const updater = createUpdater({
+  app,
+  shell,
+  send: (state) => win && !win.isDestroyed() && win.webContents.send('update:state', state),
+  settings: readStore,
+});
 
 // ---------------------------------------------------------------- undo / redo
 // Shared with the Paseo plugin server (core-node/history.ts).
@@ -151,6 +164,14 @@ ipcMain.handle('app', async (_e, method, args = []) => {
       return null;
     case 'runCustom':
       return runCustom(args[0], args[1], args[2]);
+    case 'update:state':
+      return updater.state();
+    case 'update:check':
+      return updater.check({ manual: true });
+    case 'update:apply':
+      return updater.apply();
+    case 'update:password':
+      return updater.answerPassword(args[0]);
     case 'initialRepo': {
       // `githistory /path/to/repo` opens that repository in a tab on launch.
       const arg = process.argv.slice(isDev || !app.isPackaged ? 2 : 1).find((a) => !a.startsWith('-') && a !== '.');
@@ -268,6 +289,7 @@ function buildMenu() {
         { label: 'Toggle Left Panel', accelerator: 'CmdOrCtrl+J', click: send('toggleLeft') },
         { label: 'Toggle Right Panel', accelerator: 'CmdOrCtrl+K', click: send('toggleRight') },
         { label: 'Toggle Compact Mode', accelerator: 'CmdOrCtrl+Shift+M', click: send('compact') },
+        { label: 'Interface Style…', click: send('interfaceStyle') },
         { label: 'Repository Manager', accelerator: 'CmdOrCtrl+Shift+R', click: send('repoManager') },
         { type: 'separator' },
         { role: 'reload' },
@@ -279,6 +301,7 @@ function buildMenu() {
       ],
     },
     { role: 'windowMenu' },
+    { label: 'Help', submenu: [{ label: 'Check for Updates…', click: () => void updater.check({ manual: true }) }] },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
@@ -338,6 +361,7 @@ else {
 app.whenReady().then(() => {
   buildMenu();
   createWindow();
+  updater.start();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

@@ -10,7 +10,7 @@ const { git } = require('../electron/core-node.gen.cjs');
 const repoArg = process.argv[2] ? path.resolve(process.argv[2]) : null;
 const port = Number(process.argv[3] || 4321);
 const dist = path.join(__dirname, '..', 'dist');
-let store = { recent: [], openTabs: [], activeTab: null, autoFetchMinutes: 0, defaultCloneDir: '', pullMode: 'ff', dateFormat: 'relative', repos: [], customCommands: [], compact: false, pushAfterCommit: false, theme: 'dark', lightFrom: '06:00', darkFrom: '18:00' };
+let store = { recent: [], openTabs: [], activeTab: null, autoFetchMinutes: 0, defaultCloneDir: '', pullMode: 'ff', dateFormat: 'relative', repos: [], customCommands: [], compact: false, pushAfterCommit: false, theme: 'dark', lightFrom: '06:00', darkFrom: '18:00', uiStyle: null, checkUpdates: true };
 
 const appMethods = {
   'store:get': () => store,

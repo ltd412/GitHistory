@@ -53,6 +53,7 @@ Giao diện sáng, hoặc tự đổi theo giờ trong ngày:
 | File | Blame, lịch sử file, xem file ở mọi revision, khôi phục phiên bản, diff ảnh |
 | Remote | Fetch, pull (merge / rebase / ff-only), push với force-with-lease khi bị từ chối, thêm/sửa/xoá remote |
 | Lịch sử | Interactive rebase, reword/squash/fixup/move/drop nhanh, undo merge, undo/redo |
+| Kiểu giao diện | Chọn **Kraken** (graph nhiều màu) hoặc **JetBrains** (Git log kiểu PyCharm: cây branch, bộ lọc, bảng có graph, panel chi tiết) ngay lần mở đầu; đổi lúc nào cũng được từ thanh tab hoặc Preferences |
 | Không gian làm việc | Nhiều repo dạng tab, quản lý repo, mở nhanh, lệnh tuỳ chỉnh, giao diện tối/sáng/tự động |
 
 ## Cài đặt
@@ -137,4 +138,4 @@ Bản phát hành do GitHub Actions (`.github/workflows/release.yml`) build cho 
 
 ## Giấy phép
 
-[MIT](LICENSE) © 2026 ltd412
+[MIT](LICENSE) © 2026 ltd412. Git log kiểu JetBrains có một phần được phát triển từ [OpenIDEA](https://github.com/l0ng-ai/openidea) (Apache-2.0) — xem [NOTICE](NOTICE).

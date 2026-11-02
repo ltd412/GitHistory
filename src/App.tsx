@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { app, errorMessage, git } from './lib/api';
+import { app, errorMessage, git, type UpdateState } from './lib/api';
 import { basename } from './lib/format';
 import type { Settings } from './lib/types';
-import { IconFolder, IconMoon, IconPlus, IconSun, IconX } from './components/Icons';
+import { IconChevron, IconFolder, IconLayout, IconMoon, IconPlus, IconSun, IconX } from './components/Icons';
 import { effectiveTheme, isValidTime } from './lib/theme';
 import { setLanePalette } from './lib/format';
 import { OverlayProvider, useUI } from './components/Overlays';
@@ -10,6 +10,9 @@ import { RepoView } from './components/RepoView';
 import { CloneDialog, InitDialog, Palette, SettingsDialog, type PaletteItem } from './components/Dialogs';
 import { RepoManager } from './components/RepoManager';
 import { IS_MAC, keyLabel } from './lib/keys';
+import { StylePicker } from './components/StylePicker';
+import { UpdateButton } from './components/UpdateButton';
+import { PasswordPrompt } from './components/PasswordPrompt';
 
 interface Tab {
   id: number;
@@ -34,6 +37,8 @@ function Shell() {
   const [dialog, setDialog] = useState<'clone' | 'init' | 'prefs' | null>(null);
   const [menuCommand, setMenuCommand] = useState<{ cmd: string; seq: number } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const [update, setUpdate] = useState<UpdateState>({ phase: 'idle' });
   // Repositories found inside a picked folder that is not a repository itself.
   const [found, setFound] = useState<{ root: string; repos: string[] } | null>(null);
 
@@ -66,6 +71,20 @@ function Shell() {
 
   const active = tabs.find((t) => t.id === activeId);
 
+  // Updates: the main process checks in the background and pushes its state; a check the user asked for
+  // (Help › Check for Updates…) also reports "up to date" and failures.
+  useEffect(() => {
+    void app.updateState().then(setUpdate);
+    return app.onUpdate((s) => {
+      setUpdate(s);
+      if (!s.manual) return;
+      if (s.upToDate) ui.toast('success', 'GitHistory is up to date', s.current ? `Version ${s.current}` : undefined);
+      else if (s.phase === 'error' && !s.version) ui.toast('error', 'Update check failed', s.error);
+      else if (s.phase === 'available') ui.toast('info', `GitHistory ${s.version} is available`, 'Click "Update" in the tab bar to install it.');
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ------------------------------------------------------------ theme
   const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [clock, setClock] = useState(() => new Date());
@@ -89,6 +108,10 @@ function Shell() {
     document.documentElement.dataset.theme = theme;
     void app.setNativeTheme(theme);
   }, [theme]);
+  const uiStyle = settings?.uiStyle ?? 'kraken';
+  useEffect(() => {
+    document.documentElement.dataset.style = uiStyle;
+  }, [uiStyle]);
 
   const themeMenu = (e: React.MouseEvent) => {
     if (!settings) return;
@@ -211,6 +234,7 @@ function Shell() {
         if (cmd === 'newTab') return newTab();
         if (cmd === 'closeTab') return closeTab(activeId);
         if (cmd === 'repoManager') return newTab();
+        if (cmd === 'interfaceStyle') return setStyleOpen(true);
         if (cmd === 'compact' && !tabs.find((t) => t.id === activeId)?.repo) return void onSettings({ compact: !settings?.compact });
         if (cmd === 'palette' && !tabs.find((t) => t.id === activeId)?.repo) return setPaletteOpen(true);
         setMenuCommand((m) => ({ cmd, seq: (m?.seq ?? 0) + 1 }));
@@ -242,9 +266,20 @@ function Shell() {
         <div className="tab-add" onClick={newTab} title={keyLabel('New tab (⌘T)')}>
           <IconPlus width={14} height={14} />
         </div>
-        <div className="theme-btn" onClick={themeMenu} title="Appearance: dark / light / match system / auto by time">
-          {theme === 'light' ? <IconSun /> : <IconMoon />}
-          {settings.theme === 'schedule' ? 'Auto' : settings.theme === 'system' ? 'System' : theme === 'light' ? 'Light' : 'Dark'}
+        <div className="tabbar-right">
+          <UpdateButton state={update} onApply={() => void app.updateApply()} />
+          <div className="theme-btn" onClick={() => setStyleOpen(true)} title="Interface style: Kraken (colourful graph) or JetBrains (PyCharm-style Git log)">
+            <IconLayout />
+            <span className="lbl">Style</span>
+            {uiStyle === 'jetbrains' ? 'JetBrains' : 'Kraken'}
+            <IconChevron width={10} height={10} />
+          </div>
+          <div className="theme-btn" onClick={themeMenu} title="Colour theme: dark / light / match system / auto by time of day">
+            {theme === 'light' ? <IconSun /> : <IconMoon />}
+            <span className="lbl">Theme</span>
+            {settings.theme === 'schedule' ? 'Auto' : settings.theme === 'system' ? 'System' : theme === 'light' ? 'Light' : 'Dark'}
+            <IconChevron width={10} height={10} />
+          </div>
         </div>
       </div>
       {tabs.map((t) =>
@@ -274,6 +309,8 @@ function Shell() {
             { label: 'Clone repository…', hint: '⌘N', run: () => setDialog('clone') },
             { label: 'Init repository…', run: () => setDialog('init') },
             { label: 'Preferences', hint: '⌘,', run: () => setDialog('prefs') },
+            { label: 'Interface style: Kraken', run: () => void onSettings({ uiStyle: 'kraken' }) },
+            { label: 'Interface style: JetBrains', run: () => void onSettings({ uiStyle: 'jetbrains' }) },
           ]}
           onClose={() => setPaletteOpen(false)}
         />
@@ -287,6 +324,20 @@ function Shell() {
             run: () => void openRepo(p),
           }))}
           onClose={() => setFound(null)}
+        />
+      )}
+      {update.phase === 'password' && (
+        <PasswordPrompt key={String(update.wrong)} version={update.version} wrong={update.wrong} onSubmit={(pw) => void app.updatePassword(pw)} onCancel={() => void app.updatePassword(null)} />
+      )}
+      {(settings.uiStyle == null || styleOpen) && (
+        <StylePicker
+          current={settings.uiStyle}
+          onPick={(uiStyle) => {
+            void onSettings({ uiStyle });
+            setStyleOpen(false);
+          }}
+          // The first-launch choice cannot be dismissed: there is no style to fall back to yet.
+          onClose={settings.uiStyle == null ? undefined : () => setStyleOpen(false)}
         />
       )}
       {dialog === 'prefs' && <SettingsDialog repo={active?.repo ?? null} settings={settings} onChange={setSettings} onClose={() => setDialog(null)} />}

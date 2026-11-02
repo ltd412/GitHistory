@@ -118,7 +118,9 @@ export function GraphView({ findSeq }: { findSeq: number }) {
   const onScroll = () => {
     hideHover();
     const el = scroller.current!;
-    setScrollTop(el.scrollTop);
+    // Only the row the window starts at matters (rows are mounted per row): re-render once per row scrolled, not per
+    // scroll event.
+    setScrollTop(Math.floor(el.scrollTop / m.row) * m.row);
     if (data.hasMore && el.scrollTop + el.clientHeight > el.scrollHeight - m.row * 50) a.loadMore();
   };
 
@@ -364,7 +366,6 @@ export function GraphView({ findSeq }: { findSeq: number }) {
             left={cols.refs}
             width={gW}
             scrollX={sx}
-            contentW={contentW}
             labelled={(h) => !!labels.get(h)?.some((l) => l.current)}
             dimmed={(h) => matches != null && !matches.has(h)}
           />
@@ -614,7 +615,6 @@ function GraphOverlay({
   left,
   width,
   scrollX,
-  contentW,
   labelled,
   dimmed,
 }: {
@@ -627,14 +627,12 @@ function GraphOverlay({
   width: number;
   /** Horizontal scroll of the lanes inside the graph column. */
   scrollX: number;
-  contentW: number;
   labelled: (hash: string) => boolean;
   dimmed: (hash: string) => boolean;
 }) {
   const top = first * m.row;
   const yOf = (row: number) => row * m.row + m.row / 2 - top;
   const visible = layout.edges.filter((e) => e.from <= last && e.to >= first);
-  const fadeR = scrollX + width < contentW;
   return (
     <svg
       width={width + left}
@@ -642,15 +640,13 @@ function GraphOverlay({
       style={{ position: 'absolute', left: 0, top, pointerEvents: 'none', overflow: 'hidden' }}
     >
       <defs>
-        {/* Lanes hidden past the right edge fade out; the left edge is always a whole-lane boundary. */}
-        <linearGradient id="graph-fade" x1="0" x2="1" y1="0" y2="0">
-          <stop offset={fadeR ? Math.max(0, (width - 26) / width) : 1} stopColor="#fff" stopOpacity={1} />
-          <stop offset={1} stopColor="#fff" stopOpacity={fadeR ? 0 : 1} />
-        </linearGradient>
-        <mask id="graph-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={width} height={(last - first) * m.row}>
-          {/* When scrolled, start 3px in so corners of the hidden lane do not leave slivers. */}
-          <rect x={scrollX > 0 ? 3 : 0} y={0} width={width} height={(last - first) * m.row} fill="url(#graph-fade)" />
-        </mask>
+        {/* WHY a clip and not a gradient mask: a mask makes Chromium rasterize the whole ~2000 px overlay into an
+            offscreen surface, and on Linux GPUs that surface tiled badly while scrolling (lines vanished in
+            chunks). Lanes past the right edge are simply cut; when scrolled, start 3 px in so corners of the
+            hidden lane do not leave slivers. */}
+        <clipPath id="graph-clip" clipPathUnits="userSpaceOnUse">
+          <rect x={scrollX > 0 ? 3 : 0} y={0} width={width} height={(last - first) * m.row} />
+        </clipPath>
       </defs>
       {/* Connector from each ref pill to its node: outside the mask so it always meets the pill. */}
       <g transform={`translate(${left} 0)`}>
@@ -665,7 +661,7 @@ function GraphOverlay({
           return <line key={`c${n.hash}`} x1={0} y1={y} x2={Math.min(x2, width)} y2={y} stroke={laneColor(row.color)} strokeWidth={2} />;
         })}
       </g>
-      <g transform={`translate(${left} 0)`} mask="url(#graph-mask)">
+      <g transform={`translate(${left} 0)`} clipPath="url(#graph-clip)">
       <g transform={`translate(${-scrollX} 0)`}>
         {visible.map((e, i) => (
           <path

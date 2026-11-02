@@ -25,6 +25,7 @@ export const IconRedo = (p: P) => base(<><path d="m15 14 5-5-5-5" /><path d="M20
 export const IconTerminal = (p: P) => base(<><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m7 9 3 3-3 3M13 15h4" /></>, p);
 export const IconFolder = (p: P) => base(<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z" />, p);
 export const IconSearch = (p: P) => base(<><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></>, p);
+export const IconLayout = (p: P) => base(<><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M9 10h12" /></>, p);
 export const IconChevron = (p: P) => base(<path d="m6 9 6 6 6-6" />, p);
 export const IconCheck = (p: P) => base(<path d="m5 12.5 4.5 4.5L19 7.5" />, p);
 export const IconPlus = (p: P) => base(<path d="M12 5v14M5 12h14" />, p);

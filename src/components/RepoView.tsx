@@ -19,6 +19,11 @@ import { ComparePanel } from './ComparePanel';
 import { FileContentView } from './FileViews';
 import { Modal } from './Overlays';
 import { ErrorBoundary } from './ErrorBoundary';
+import { JbLog } from './jb/JbLog';
+import { JbBranches } from './jb/JbBranches';
+import { JbDetails } from './jb/JbDetails';
+import { JbFilterCtx } from './jb/JbFilter';
+import { NO_FILTER, type LogFilter } from '../lib/jb';
 
 const PAGE = 2000;
 
@@ -66,6 +71,9 @@ export function RepoView({
   const [progress, setProgress] = useState('');
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
+  const jb = settings.uiStyle === 'jetbrains';
+  // JetBrains style: the log filter is shared by the branches pane and the log.
+  const [logFilter, setLogFilter] = useState<LogFilter>(NO_FILTER);
   const [leftW, setLeftW] = useState(260);
   const [rightW, setRightW] = useState(380);
   const [rebaseBase, setRebaseBase] = useState<string | null | undefined>(undefined);
@@ -327,12 +335,13 @@ export function RepoView({
 
   return (
     <RepoCtx.Provider value={ctx}>
+      <JbFilterCtx.Provider value={{ filter: logFilter, setFilter: setLogFilter }}>
       <Toolbar progress={busy ? progress : ''} />
       <div className="workspace">
         {leftOpen && (
           <>
             <div className="panel-left" style={{ width: leftW }}>
-              <Sidebar />
+              {jb ? <JbBranches /> : <Sidebar />}
             </div>
             <div className="resizer" onMouseDown={startDrag('left')} />
           </>
@@ -374,7 +383,7 @@ export function RepoView({
             </div>
           )}
           <ErrorBoundary resetKey={JSON.stringify(center)} onReset={() => setCenter({ kind: 'graph' })}>
-          {center.kind === 'graph' && <GraphView findSeq={findSeq} />}
+          {center.kind === 'graph' && (jb ? <JbLog findSeq={findSeq} /> : <GraphView findSeq={findSeq} />)}
           {center.kind === 'diff' && <DiffView key={`${center.file.path}:${JSON.stringify(center.source)}`} view={center} />}
           {center.kind === 'conflict' && <ConflictView key={center.file} file={center.file} />}
           {center.kind === 'history' && <HistoryView key={center.file} file={center.file} />}
@@ -389,7 +398,7 @@ export function RepoView({
               {selection?.kind === 'wip' || (selection == null && data.state.state !== 'clean') ? (
                 <WipPanel />
               ) : selection?.kind === 'commit' ? (
-                <CommitPanel key={selection.hash} hash={selection.hash} />
+                (jb ? <JbDetails key={selection.hash} hash={selection.hash} /> : <CommitPanel key={selection.hash} hash={selection.hash} />)
               ) : selection?.kind === 'stash' ? (
                 <StashPanel key={selection.stash.hash} stash={selection.stash} />
               ) : selection?.kind === 'compare' ? (
@@ -457,6 +466,7 @@ export function RepoView({
         />
       )}
       {rebaseBase !== undefined && <RebaseDialog base={rebaseBase} onClose={() => setRebaseBase(undefined)} />}
+      </JbFilterCtx.Provider>
     </RepoCtx.Provider>
   );
 }

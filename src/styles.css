@@ -3,20 +3,20 @@
   --bg-panel: #23262e;
   --bg-panel-2: #2a2e37;
   --bg-hover: #2f3440;
-  --bg-select: #354055;
+  --bg-select: #313b4e;
   --bg-input: #15171c;
   --border: #353a45;
   --border-soft: #2c3039;
-  --text: #d6d9e0;
+  --text: #c5c9d1;
   --text-dim: #8c93a3;
   --text-faint: #5f6675;
-  --accent: #3fb6d4;
-  --green: #3fbb6f;
-  --green-hover: #4ccc7d;
-  --red: #e05561;
-  --orange: #e8a243;
-  --yellow: #e6c547;
-  --purple: #a77ee6;
+  --accent: #4aa5bd;
+  --green: #4fa676;
+  --green-hover: #5bb583;
+  --red: #cf6770;
+  --orange: #d4a05c;
+  --yellow: #d6bf63;
+  --purple: #9d85d2;
   --row-h: 28px;
   --lane-w: 18px;
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -27,7 +27,7 @@
   --bg-menu: #2b2f38;
   --menu-border: #40465299;
   --hover-tint: rgba(255, 255, 255, .03);
-  --text-strong: #fff;
+  --text-strong: #d5d8de;
   --warn-bg: #3b2b1a;
   --warn-border: #5a4126;
   --warn-text: #ffd8a8;
@@ -46,30 +46,30 @@
 /* Light theme: same tokens, light values. Lane and status colours keep their hue. */
 :root[data-theme='light'] {
   /* Calm, neutral light palette: soft grey chrome, white work surfaces, muted accents. */
-  --bg: #ffffff;
+  --bg: #fbfbfc;
   --bg-panel: #f7f8fa;
   --bg-panel-2: #eef0f3;
   --bg-hover: #eceef2;
-  --bg-select: #dde8f7;
+  --bg-select: #e0e8f5;
   --bg-input: #ffffff;
   --border: #d9dde3;
   --border-soft: #e8ebef;
-  --text: #1f2328;
+  --text: #33373d;
   --text-dim: #5b6370;
   --text-faint: #8c939e;
-  --accent: #1a7fa8;
-  --green: #1f883d;
-  --green-hover: #1a7f37;
-  --red: #cf222e;
-  --orange: #b35900;
+  --accent: #3f8aa9;
+  --green: #3d8750;
+  --green-hover: #35794a;
+  --red: #c05059;
+  --orange: #a8702a;
   --yellow: #8a6a00;
-  --purple: #7c3aed;
+  --purple: #7a5cc4;
   --bg-chrome: #eceff3;
   --tab-bg: #e1e5ea;
   --bg-menu: #ffffff;
   --menu-border: #d0d7de;
   --hover-tint: rgba(31, 35, 40, .035);
-  --text-strong: #0d1117;
+  --text-strong: #25282d;
   --warn-bg: #fff6e5;
   --warn-border: #f0d29b;
   --warn-text: #6b4400;
@@ -577,6 +577,10 @@ input, textarea, select, button { font: inherit; color: inherit; }
 .sb-cell.selectable { cursor: pointer; }
 .sb-block.change { border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
 .sb-block.change.current { box-shadow: inset 3px 0 0 var(--accent); }
+.sb-fixed .sb-frow { position: absolute; left: 0; right: 0; height: 18px; }
+.sb-fixed .sb-cell { height: 18px; min-height: 18px; overflow: hidden; }
+.sb-fixed .sb-cell .tx { white-space: pre; word-break: normal; overflow: hidden; }
+.sb-fixed .sb-fold { height: 18px; padding: 0; line-height: 18px; }
 .sb-fold { text-align: center; color: var(--text-faint); font-family: var(--font); font-size: 11px; padding: 3px; background: var(--hover-tint); cursor: default; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
 .sb-fold:hover { color: var(--text); background: var(--bg-hover); }
 
@@ -604,3 +608,27 @@ input, textarea, select, button { font: inherit; color: inherit; }
 .radio-opt span { display: flex; flex-direction: column; gap: 2px; }
 .radio-opt b { font-weight: 600; color: var(--text); }
 .radio-opt small { color: var(--text-dim); font-size: 11px; }
+
+/* ---------- update button (tab bar) */
+.tabbar-right { margin-left: auto; margin-right: 10px; display: flex; align-items: center; align-self: center; gap: 0; -webkit-app-region: no-drag; }
+.tabbar-right .theme-btn { margin: 0; height: 24px; gap: 5px; padding: 0 7px; border: 1px solid var(--border); font-size: 11.5px; color: var(--text); }
+.tabbar-right .theme-btn:hover { border-color: var(--text-faint); background: var(--bg-hover); }
+/* the two buttons read as one segmented control */
+.tabbar-right .theme-btn + .theme-btn { margin-left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.tabbar-right .theme-btn:has(+ .theme-btn) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tabbar-right .update-btn, .tabbar-right .update-note { margin-right: 10px; }
+.tabbar-right .theme-btn .lbl { color: var(--text-faint); }
+.tabbar-right .theme-btn svg { color: var(--text-dim); }
+.tabbar-right .update-btn, .tabbar-right .update-note { margin-bottom: 0; }
+.update-btn {
+  -webkit-app-region: no-drag; position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 6px;
+  height: 24px; margin: 0 8px 4px 0; padding: 0 12px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 11.5px; white-space: nowrap;
+}
+.update-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.update-btn:disabled { cursor: default; }
+.update-btn.busy { background: var(--bg-panel-2); color: var(--text); }
+.update-btn.error { background: var(--red); }
+.update-bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); opacity: .5; transition: width .15s; }
+.update-txt { position: relative; }
+.update-note { margin: 0 10px 4px 0; color: var(--green); font-size: 11.5px; font-weight: 600; white-space: nowrap; }

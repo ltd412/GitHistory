@@ -1,0 +1,14 @@
+GitHistory
+Copyright (c) 2026 ltd412 — MIT License (see LICENSE)
+
+This product includes material derived from OpenIDEA (https://github.com/l0ng-ai/openidea),
+Copyright 2026 OpenIDEA contributors, licensed under the Apache License, Version 2.0:
+
+  - core/jb-graph.ts        commit graph lane layout and long-edge hiding (src/features/vcs/graph.ts)
+  - core/jb.ts              Git log view options and reference label rules (src/features/vcs/logOptions.ts)
+  - src/jb-tokens.css       design tokens of the PyCharm "Islands" theme (src/styles/tokens.css)
+  - src/jb.css              layout and metrics of the Git log (src/features/vcs/GitLog.module.css)
+
+OpenIDEA itself includes material by JetBrains s.r.o. (IntelliJ Platform, Apache License 2.0). GitHistory is
+not affiliated with, endorsed by or sponsored by JetBrains s.r.o.; IntelliJ and PyCharm are trademarks of
+JetBrains s.r.o. A copy of the Apache License 2.0 is available at http://www.apache.org/licenses/LICENSE-2.0

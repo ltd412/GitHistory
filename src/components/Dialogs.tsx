@@ -233,6 +233,13 @@ export function SettingsDialog({
         <input className="input" value={s.defaultCloneDir} onChange={(e) => setS({ ...s, defaultCloneDir: e.target.value })} />
       </label>
       <label className="f">
+        Interface style
+        <select className="input" value={s.uiStyle ?? 'kraken'} onChange={(e) => setS({ ...s, uiStyle: e.target.value as Settings['uiStyle'] })}>
+          <option value="kraken">Kraken — graph with colour bands</option>
+          <option value="jetbrains">JetBrains — Git log like PyCharm</option>
+        </select>
+      </label>
+      <label className="f">
         Appearance
         <select className="input" value={s.theme ?? 'dark'} onChange={(e) => setS({ ...s, theme: e.target.value as Settings['theme'] })}>
           <option value="dark">Dark</option>
@@ -256,6 +263,10 @@ export function SettingsDialog({
       <label className="toggle-check">
         <input type="checkbox" checked={s.compact} onChange={(e) => setS({ ...s, compact: e.target.checked })} />
         {keyLabel('Compact commit graph (denser rows, no avatars) — ⇧⌘M')}
+      </label>
+      <label className="toggle-check">
+        <input type="checkbox" checked={s.checkUpdates !== false} onChange={(e) => setS({ ...s, checkUpdates: e.target.checked })} />
+        Check for updates automatically (Help › Check for Updates… always works)
       </label>
       <label className="toggle-check">
         <input type="checkbox" checked={s.pushAfterCommit} onChange={(e) => setS({ ...s, pushAfterCommit: e.target.checked })} />

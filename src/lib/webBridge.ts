@@ -15,5 +15,6 @@ export function installWebBridge() {
     onRepoChanged: noop,
     onProgress: noop,
     onMenu: noop,
+    onUpdate: noop,
   };
 }

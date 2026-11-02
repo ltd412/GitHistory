@@ -7,6 +7,23 @@ interface Bridge {
   onRepoChanged: (cb: (repo: string) => void) => () => void;
   onProgress: (cb: (p: { repo: string; text: string }) => void) => () => void;
   onMenu: (cb: (cmd: string) => void) => () => void;
+  onUpdate: (cb: (state: UpdateState) => void) => () => void;
+}
+
+/** State of the in-app updater (electron/updater.cjs). */
+export interface UpdateState {
+  phase: 'idle' | 'checking' | 'available' | 'downloading' | 'password' | 'installing' | 'opened' | 'error';
+  version?: string;
+  notesUrl?: string;
+  kind?: 'deb' | 'appimage' | 'nsis' | 'dmg' | 'manual';
+  progress?: number;
+  error?: string;
+  /** The user asked for this check (Help › Check for Updates…), so the outcome is reported. */
+  manual?: boolean;
+  upToDate?: boolean;
+  /** The previous password was rejected (phase `password`). */
+  wrong?: boolean;
+  current?: string;
 }
 
 declare global {
@@ -49,4 +66,10 @@ export const app = {
   onRepoChanged: (cb: (repo: string) => void) => b().onRepoChanged(cb),
   onProgress: (cb: (p: { repo: string; text: string }) => void) => b().onProgress(cb),
   onMenu: (cb: (cmd: string) => void) => b().onMenu(cb),
+  updateState: (): Promise<UpdateState> => b().app('update:state').catch(() => ({ phase: 'idle' }) as UpdateState),
+  updateCheck: (): Promise<UpdateState> => b().app('update:check'),
+  updateApply: (): Promise<UpdateState> => b().app('update:apply'),
+  /** Answers the password prompt; null cancels. The password goes to sudo only. */
+  updatePassword: (password: string | null) => b().app('update:password', password),
+  onUpdate: (cb: (state: UpdateState) => void) => b().onUpdate(cb),
 };
