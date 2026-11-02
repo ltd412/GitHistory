@@ -127,7 +127,7 @@ input, textarea, select, button { font: inherit; color: inherit; }
 }
 .tab.active { background: var(--bg-panel); color: var(--text); }
 .tab:not(.active):hover { color: var(--text); }
-.tab .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tab .x { opacity: 0; border-radius: 3px; padding: 0 4px; }
 .tab:hover .x, .tab.active .x { opacity: .7; }
 .tab .x:hover { background: var(--bg-hover); opacity: 1; }

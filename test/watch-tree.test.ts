@@ -41,7 +41,9 @@ test('node_modules, git objects and lock files are noise', async () => {
   let n = 0;
   const stop = watchTree(root, () => n++, { fingerprint: async () => '' });
   try {
-    await sleep(100);
+    // macOS FSEvents may still report the directories created above; only events after this point count.
+    await sleep(300);
+    n = 0;
     fs.writeFileSync(path.join(root, 'node_modules/x/i.js'), '1');
     fs.writeFileSync(path.join(root, '.git/objects/ab'), '1');
     fs.writeFileSync(path.join(root, '.git/index.lock'), '1');
