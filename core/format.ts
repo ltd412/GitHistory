@@ -1,29 +1,29 @@
 /** Lane colours for the dark background: muted, so long sessions are not tiring (lower saturation and contrast). */
 export const LANE_COLORS = [
-  '#4a9db3',
-  '#5a86d4',
-  '#8d56ab',
-  '#b0599f',
-  '#c0587f',
-  '#b55b59',
-  '#d4875f',
-  '#d4bd6c',
-  '#86b862',
-  '#59b79d',
+  '#15a0bf',
+  '#0669f7',
+  '#8e00c2',
+  '#c517b6',
+  '#d90171',
+  '#cd0101',
+  '#f25d2e',
+  '#f2ca33',
+  '#7bd938',
+  '#2ece9d',
 ];
 
 /** Same hues, toned down for a light background; still dark enough for white-on-colour labels. */
 export const LANE_COLORS_LIGHT = [
-  '#3f8aa6',
-  '#5273c4',
-  '#7d5fc7',
-  '#a65792',
-  '#b85a76',
-  '#ae5a52',
-  '#b87546',
-  '#9a8444',
-  '#5f8f4c',
-  '#468f80',
+  '#0e8aa6',
+  '#0a5fdb',
+  '#7a00a8',
+  '#aa1399',
+  '#c00060',
+  '#b80000',
+  '#dc4f1f',
+  '#c9a000',
+  '#5fb01f',
+  '#14b385',
 ];
 
 let palette = LANE_COLORS;
@@ -38,7 +38,7 @@ export function setLanePalette(theme: 'dark' | 'light') {
 export const laneColor = (i: number) => palette[i % palette.length];
 
 /** Two-digit hex alpha for lane-coloured row bands: subtle on white, a bit stronger on dark. */
-export const bandAlpha = (hasRefs: boolean) => (lightTheme ? (hasRefs ? '14' : '08') : hasRefs ? '22' : '10');
+export const bandAlpha = (hasRefs: boolean) => (lightTheme ? (hasRefs ? '1a' : '0d') : hasRefs ? '26' : '1a');
 export const isLightTheme = () => lightTheme;
 
 export function relativeTime(sec: number): string {

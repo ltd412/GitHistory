@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { app, errorMessage, git, type UpdateState } from './lib/api';
 import { basename } from './lib/format';
 import type { Settings } from './lib/types';
@@ -112,6 +112,36 @@ function Shell() {
   useEffect(() => {
     document.documentElement.dataset.style = uiStyle;
   }, [uiStyle]);
+
+  // Tabs that do not fit next to the fixed Style/Theme group move into a dropdown; the active tab always stays visible.
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState(1000);
+  useLayoutEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const measure = () => setFit(Math.max(1, Math.floor((el.clientWidth - 76) / 122)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [settings !== null]);
+  const hiddenIds = useMemo(() => {
+    if (tabs.length <= fit) return new Set<number>();
+    const shown = new Set(tabs.slice(0, fit).map((t) => t.id));
+    if (!shown.has(activeId) && fit > 0) {
+      shown.delete(tabs[fit - 1].id);
+      shown.add(activeId);
+    }
+    return new Set(tabs.filter((t) => !shown.has(t.id)).map((t) => t.id));
+  }, [tabs, fit, activeId]);
+  const [more, setMore] = useState<{ x: number; y: number } | null>(null);
+  const overflowMenu = (e: React.MouseEvent) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setMore(more ? null : { x: r.right, y: r.bottom + 4 });
+  };
+  useEffect(() => {
+    if (more && hiddenIds.size === 0) setMore(null);
+  }, [more, hiddenIds]);
 
   const themeMenu = (e: React.MouseEvent) => {
     if (!settings) return;
@@ -248,7 +278,8 @@ function Shell() {
   return (
     <div className="app">
       <div className={`tabbar${IS_MAC ? ' mac' : ''}`}>
-        {tabs.map((t) => (
+        <div className="tabs" ref={tabsRef}>
+        {tabs.filter((t) => !hiddenIds.has(t.id)).map((t) => (
           <div key={t.id} className={`tab${t.id === activeId ? ' active' : ''}`} onClick={() => setActiveId(t.id)} title={t.repo ?? 'New tab'} onAuxClick={(e) => e.button === 1 && closeTab(t.id)}>
             <IconFolder width={13} height={13} />
             <span className="name">{t.repo ? basename(t.repo) : 'New Tab'}</span>
@@ -266,6 +297,12 @@ function Shell() {
         <div className="tab-add" onClick={newTab} title={keyLabel('New tab (⌘T)')}>
           <IconPlus width={14} height={14} />
         </div>
+        {hiddenIds.size > 0 && (
+          <div className={`tab-add tab-more${more ? ' open' : ''}`} onClick={overflowMenu} title={`${hiddenIds.size} more tabs`}>
+            <IconChevron width={12} height={12} />
+          </div>
+        )}
+        </div>
         <div className="tabbar-right">
           <UpdateButton state={update} onApply={() => void app.updateApply()} />
           <div className="theme-btn" onClick={() => setStyleOpen(true)} title="Interface style: Kraken (colourful graph) or JetBrains (PyCharm-style Git log)">
@@ -282,6 +319,36 @@ function Shell() {
           </div>
         </div>
       </div>
+      {more && (
+        <>
+          <div className="tab-dd-backdrop" onClick={() => setMore(null)} />
+          <div className="tab-dd" style={{ top: more.y, right: window.innerWidth - more.x }}>
+            {tabs.filter((t) => hiddenIds.has(t.id)).map((t) => (
+              <div
+                key={t.id}
+                className={`tab-dd-row${t.id === activeId ? ' active' : ''}`}
+                onClick={() => {
+                  setActiveId(t.id);
+                  setMore(null);
+                }}
+                title={t.repo ?? 'New tab'}
+              >
+                <IconFolder width={14} height={14} />
+                <span className="name">{t.repo ? basename(t.repo) : 'New Tab'}</span>
+                <span
+                  className="x"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeTab(t.id);
+                  }}
+                >
+                  <IconX width={10} height={10} />
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
       {tabs.map((t) =>
         t.repo ? (
           <RepoView
