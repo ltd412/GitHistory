@@ -305,10 +305,10 @@ function Shell() {
         </div>
         <div className="tabbar-right">
           <UpdateButton state={update} onApply={() => void app.updateApply()} />
-          <div className="theme-btn" onClick={() => setStyleOpen(true)} title="Interface style: Kraken (colourful graph) or JetBrains (PyCharm-style Git log)">
+          <div className="theme-btn" onClick={() => setStyleOpen(true)} title="Interface style: GitKraken (colourful graph) or JetBrains (PyCharm-style Git log)">
             <IconLayout />
             <span className="lbl">Style</span>
-            {uiStyle === 'jetbrains' ? 'JetBrains' : 'Kraken'}
+            {uiStyle === 'jetbrains' ? 'JetBrains' : 'GitKraken'}
             <IconChevron width={10} height={10} />
           </div>
           <div className="theme-btn" onClick={themeMenu} title="Colour theme: dark / light / match system / auto by time of day">
@@ -376,7 +376,7 @@ function Shell() {
             { label: 'Clone repository…', hint: '⌘N', run: () => setDialog('clone') },
             { label: 'Init repository…', run: () => setDialog('init') },
             { label: 'Preferences', hint: '⌘,', run: () => setDialog('prefs') },
-            { label: 'Interface style: Kraken', run: () => void onSettings({ uiStyle: 'kraken' }) },
+            { label: 'Interface style: GitKraken', run: () => void onSettings({ uiStyle: 'kraken' }) },
             { label: 'Interface style: JetBrains', run: () => void onSettings({ uiStyle: 'jetbrains' }) },
           ]}
           onClose={() => setPaletteOpen(false)}

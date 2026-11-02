@@ -235,7 +235,7 @@ export function SettingsDialog({
       <label className="f">
         Interface style
         <select className="input" value={s.uiStyle ?? 'kraken'} onChange={(e) => setS({ ...s, uiStyle: e.target.value as Settings['uiStyle'] })}>
-          <option value="kraken">Kraken — graph with colour bands</option>
+          <option value="kraken">GitKraken — graph with colour bands</option>
           <option value="jetbrains">JetBrains — Git log like PyCharm</option>
         </select>
       </label>

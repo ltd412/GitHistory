@@ -58,7 +58,7 @@ Light theme, or switch automatically by time of day:
 | Files | Blame, file history, view a file at any revision, restore a version, image diff |
 | Remote | Fetch, pull (merge / rebase / ff-only), push with force-with-lease on rejection, add/edit/remove remotes |
 | History | Interactive rebase, quick reword/squash/fixup/move/drop, undo merge, undo/redo |
-| Interface styles | Pick **Kraken** (colourful graph) or **JetBrains** (PyCharm-style Git log: branches tree, filters, table with graph, details pane) on first launch; switch any time from the tab bar or Preferences |
+| Interface styles | Pick **GitKraken** (colourful graph) or **JetBrains** (PyCharm-style Git log: branches tree, filters, table with graph, details pane) on first launch; switch any time from the tab bar or Preferences |
 | Workspace | Several repositories as tabs, repository manager, quick launch, custom commands, dark/light/auto theme |
 
 ## Install

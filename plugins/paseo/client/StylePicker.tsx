@@ -49,7 +49,7 @@ function JetBrainsPreview() {
 }
 
 const CHOICES: { id: UiStyle; name: string; blurb: string }[] = [
-  { id: "kraken", name: "Kraken", blurb: "Colourful lanes and row bands, avatars on the graph, branch labels in their own column." },
+  { id: "kraken", name: "GitKraken", blurb: "Colourful lanes and row bands, avatars on the graph, branch labels in their own column." },
   { id: "jetbrains", name: "JetBrains", blurb: "The Git log of PyCharm / IntelliJ: filters, a branches tree, a table with graph, author and date." },
 ];
 
