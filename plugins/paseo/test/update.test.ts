@@ -1,6 +1,8 @@
 // The update banner: a newer published release is offered, an equal/older/draft/failed one is not, and GitHub is asked once per TTL.
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
+import { PLUGIN_VERSION } from "../shared/version";
 import { latestRelease, offer, resetUpdateCache } from "../server/update";
 
 const rel = (tag: string, extra = {}) => ({ tag_name: tag, html_url: `https://github.com/ltd412/GitHistory/releases/tag/${tag}`, assets: [], ...extra });
@@ -32,4 +34,9 @@ test("latestRelease caches a success, retries a failure sooner", async () => {
   await latestRelease(bad, 70_000);
   assert.equal(calls, 3, "then retried");
   resetUpdateCache();
+});
+
+test("PLUGIN_VERSION matches package.json", () => {
+  const pkg = JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  assert.equal(PLUGIN_VERSION, pkg.version);
 });

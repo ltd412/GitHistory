@@ -1,7 +1,7 @@
 // "Is there a newer GitHistory?" for the plugin banner. Read-only: it asks GitHub and compares versions; applying the
 // update is `paseo plugin update githistory`, run by the person on the daemon's machine.
 import type { RpcOutput } from "@getpaseo/plugin";
-import pkg from "../package.json";
+import { PLUGIN_VERSION } from "../shared/version";
 import { RELEASES_API, compareVersions, type Release } from "./core-node/update";
 import type { updateRpc } from "../shared/rpc";
 
@@ -35,7 +35,7 @@ export function offer(release: Release | null, current: string): { latest: strin
 }
 
 export async function updateCheck(): Promise<RpcOutput<typeof updateRpc>> {
-  const current = pkg.version;
+  const current = PLUGIN_VERSION;
   return { current, ...offer(await latestRelease(), current), command: UPDATE_COMMAND };
 }
 
