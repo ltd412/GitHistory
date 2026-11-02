@@ -132,10 +132,23 @@ export function GitScreen({ theme, layout, host }: PluginScreenProps) {
         </ScrollView>
         <Pressable
           onPress={() => setStyleOpen(true)}
-          accessibilityLabel="Interface style"
-          style={(st) => ({ paddingHorizontal: 10, paddingVertical: 8, backgroundColor: hovered(st) ? c.surface2 : "transparent" })}
+          accessibilityLabel="Interface style: Kraken or JetBrains"
+          style={(st) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            marginHorizontal: 6,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            borderRadius: 6,
+            borderWidth: 1,
+            borderColor: c.border,
+            backgroundColor: hovered(st) ? c.surface2 : "transparent",
+          })}
         >
-          <Text style={{ color: c.foregroundMuted, fontSize: 12 }}>{style === "jetbrains" ? "JetBrains" : "Kraken"} ▾</Text>
+          <Text style={{ color: c.foregroundMuted, fontSize: 12 }}>Style</Text>
+          <Text style={{ color: c.foreground, fontSize: 12, fontWeight: "600" }}>{style === "jetbrains" ? "JetBrains" : "Kraken"}</Text>
+          <Icon name="ChevronDown" size={12} color={c.foregroundMuted} />
         </Pressable>
         <Pressable onPress={() => setPicking((p) => !p)} style={(st) => ({ paddingHorizontal: 14, paddingVertical: 8, backgroundColor: hovered(st) ? c.surface2 : "transparent" })} accessibilityLabel="Open a project">
           <Icon name="Plus" size={18} color={c.foreground} />
