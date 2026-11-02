@@ -53,6 +53,13 @@
   .shot img { width: 100%; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); display: block; }
   .shot.light-only { display: none; }
   @media (prefers-color-scheme: light) { .shot.dark-only { display: none; } .shot.light-only { display: block; } }
+  .styles figure { margin: 0; }
+  .styles .light-img { display: none; }
+  @media (prefers-color-scheme: light) { .styles .dark-img { display: none; } .styles .light-img { display: block; } }
+  .styles figcaption { margin-top: 12px; text-align: left; }
+  .styles figcaption b { display: block; font-size: 17px; margin-bottom: 4px; }
+  .styles figcaption span { color: var(--dim); font-size: 14px; }
+  .styles .how { margin-top: 22px; text-align: center; color: var(--dim); font-size: 15px; }
   section { padding: 72px 0 0; }
   section h2 { font-size: clamp(26px, 4vw, 36px); text-align: center; margin: 0 0 10px; letter-spacing: -.01em; }
   section p.sub { text-align: center; color: var(--dim); margin: 0 auto 36px; max-width: 680px; }
@@ -124,6 +131,22 @@
     </div>
   </section>
 
+  <section id="styles" class="styles">
+    <h2 data-i18n="s.title">Two ways to read your history</h2>
+    <p class="sub" data-i18n="s.sub">Pick the look you are used to the first time you open GitHistory, and switch whenever you like.</p>
+    <div class="pair">
+      <figure>
+        <img class="dark-img" src="screenshots/style-kraken-dark.png" alt="GitKraken style, dark theme"><img class="light-img" src="screenshots/style-kraken-light.png" alt="GitKraken style, light theme">
+        <figcaption><b>GitKraken</b><span data-i18n="s.kraken">A colourful graph: every branch in its own lane, avatars on the commits, soft colour bands across rows, branch and tag labels in their own column.</span></figcaption>
+      </figure>
+      <figure>
+        <img class="dark-img" src="screenshots/style-jetbrains-dark.png" alt="JetBrains style, dark theme"><img class="light-img" src="screenshots/style-jetbrains-light.png" alt="JetBrains style, light theme">
+        <figcaption><b>JetBrains</b><span data-i18n="s.jb">A PyCharm-style Git log: branches tree on the left, filter bar (text or hash, branch, user, date), a compact table with a slim graph, and a details pane for the selected commit.</span></figcaption>
+      </figure>
+    </div>
+    <p class="how" data-i18n-html="s.how">Change it any time from <b>Style</b> in the tab bar, <b>View → Interface Style…</b> or Preferences. The Paseo plugin has both styles too.</p>
+  </section>
+
   <section>
     <h2 data-i18n="r.title">Review and resolve with confidence</h2>
     <p class="sub" data-i18n="r.sub">The two screens you spend the most time in when things get tricky.</p>
@@ -185,6 +208,10 @@ const VI = {
   'f.c6h': 'So sánh, blame, lịch sử', 'f.c6p': 'So sánh hai revision bất kỳ hoặc với working tree, blame file, xem lịch sử, xem hoặc khôi phục mọi phiên bản.',
   'f.c7h': 'Sửa lịch sử', 'f.c7p': 'Interactive rebase, cùng reword, squash, fixup, đổi thứ tự và drop ngay từ menu commit.',
   'f.c8h': 'Giao diện theo ý bạn', 'f.c8p': 'Chọn graph GitKraken nhiều màu hoặc Git log kiểu PyCharm, cùng nhiều repo dạng tab, mở nhanh, lệnh tuỳ chỉnh, giao diện tối/sáng hoặc đổi theo giờ.',
+  's.title': 'Hai cách đọc lịch sử', 's.sub': 'Chọn kiểu giao diện bạn quen ngay lần đầu mở GitHistory, và đổi lại bất cứ lúc nào.',
+  's.kraken': 'Graph nhiều màu: mỗi nhánh một làn, avatar trên commit, dải màu nhẹ theo từng dòng, nhãn branch và tag nằm trong cột riêng.',
+  's.jb': 'Git log kiểu PyCharm: cây branch bên trái, thanh lọc (chữ hoặc hash, branch, người, ngày), bảng gọn có graph mảnh, và khung chi tiết cho commit đang chọn.',
+  's.how': 'Đổi bất cứ lúc nào từ nút <b>Style</b> trên thanh tab, <b>View → Interface Style…</b> hoặc Preferences. Plugin Paseo cũng có cả hai kiểu.',
   'r.title': 'Xem thay đổi và giải conflict tự tin', 'r.sub': 'Hai màn hình bạn dùng nhiều nhất khi mọi thứ rối lên.',
   'r.diff': 'Diff song song, tô sáng từng từ', 'r.merge': 'Công cụ giải conflict 3 cột',
   'i.title': 'Cài đặt',
