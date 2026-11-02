@@ -9,9 +9,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { tabsRpc, workspacesRpc, type RepoRef } from "../shared/rpc";
+import type { UiStyle } from "../shared/core/types";
+import { StylePicker } from "./StylePicker";
 import { ProjectPicker, type PickedProject } from "./ProjectPicker";
 import { RepoTab } from "./RepoTab";
-import { active as hovered } from "./theme";
+import { active as hovered, tokens } from "./theme";
 
 interface Tab extends PickedProject {
   key: string;
@@ -26,6 +28,10 @@ export function GitScreen({ theme, layout, host }: PluginScreenProps) {
   const [active, setActive] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const c = theme.colors;
+  // The interface style (Kraken / JetBrains) is saved on the daemon with the tabs; null until chosen.
+  const [style, setStyle] = useState<UiStyle | null>(null);
+  const [styleReady, setStyleReady] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
 
   // Restore the tabs saved on the daemon; with none saved, open the first Git workspace (or the picker).
   const tabsCall = useRpc(tabsRpc);
@@ -44,12 +50,21 @@ export function GitScreen({ theme, layout, host }: PluginScreenProps) {
     if (first) open({ ref: { kind: "workspace", id: first.id }, title: first.projectName });
     else setPicking(true);
   }, [saved.isFetched, saved.data, workspaces.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Every change is written back once things settle.
   useEffect(() => {
-    if (!seeded.current) return;
-    const timer = setTimeout(() => void tabsCall({ action: "set", state: { tabs: tabs.map(({ ref, title }) => ({ ref, title })), active } }).catch(() => {}), 300);
+    if (styleReady || !saved.isFetched) return;
+    setStyle(saved.data?.style ?? null);
+    setStyleReady(true);
+  }, [saved.isFetched, saved.data, styleReady]);
+  // Every change is written back once things settle. WHY styleReady: until the saved style has been read,
+  // `style` is null and writing would erase the choice.
+  useEffect(() => {
+    if (!seeded.current || !styleReady) return;
+    const timer = setTimeout(
+      () => void tabsCall({ action: "set", state: { tabs: tabs.map(({ ref, title }) => ({ ref, title })), active, ...(style ? { style } : {}) } }).catch(() => {}),
+      300,
+    );
     return () => clearTimeout(timer);
-  }, [tabs, active, tabsCall]);
+  }, [tabs, active, style, styleReady, tabsCall]);
 
   // A workspace archived in Paseo leaves its tab; folder tabs stay.
   useEffect(() => {
@@ -110,15 +125,34 @@ export function GitScreen({ theme, layout, host }: PluginScreenProps) {
             );
           })}
         </ScrollView>
+        <Pressable
+          onPress={() => setStyleOpen(true)}
+          accessibilityLabel="Interface style"
+          style={(st) => ({ paddingHorizontal: 10, paddingVertical: 8, backgroundColor: hovered(st) ? c.surface2 : "transparent" })}
+        >
+          <Text style={{ color: c.foregroundMuted, fontSize: 12 }}>{style === "jetbrains" ? "JetBrains" : "Kraken"} ▾</Text>
+        </Pressable>
         <Pressable onPress={() => setPicking((p) => !p)} style={(st) => ({ paddingHorizontal: 14, paddingVertical: 8, backgroundColor: hovered(st) ? c.surface2 : "transparent" })} accessibilityLabel="Open a project">
           <Icon name="Plus" size={18} color={c.foreground} />
         </Pressable>
       </View>
       {picking && <ProjectPicker theme={theme} hostLabel={host.label} openKeys={openKeys} onPick={open} onClose={closePicker} />}
       {current ? (
-        <RepoTab key={current.key} repoRef={current.ref} title={current.title} theme={theme} compact={layout.compact} />
+        <RepoTab key={current.key} repoRef={current.ref} title={current.title} theme={theme} compact={layout.compact} style={style ?? "kraken"} />
       ) : (
         !picking && <Text style={{ color: c.foregroundMuted, padding: 24, textAlign: "center" }}>Press ＋ to open a project.</Text>
+      )}
+      {styleReady && (style == null || styleOpen) && (
+        <StylePicker
+          t={tokens(theme, style ?? "kraken")}
+          current={style}
+          onPick={(picked) => {
+            setStyle(picked);
+            setStyleOpen(false);
+          }}
+          // The first choice cannot be dismissed: there is no style to fall back to yet.
+          onClose={style == null ? undefined : () => setStyleOpen(false)}
+        />
       )}
     </View>
   );

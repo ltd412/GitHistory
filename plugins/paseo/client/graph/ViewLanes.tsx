@@ -4,6 +4,7 @@
 import { memo } from "react";
 import { Text, View } from "react-native";
 import type { NodeShape, Segment } from "../../shared/core/graph-draw";
+import type { JbNodeShape, JbSegment } from "../../shared/core/jb-graph";
 
 function Stroke({ s }: { s: Segment }) {
   const dx = s.x2 - s.x1;
@@ -46,6 +47,36 @@ export const ViewLanes = memo(function ViewLanes({ shapes, width, height, bg, di
         <Stroke key={k} s={s} />
       ))}
       <Node n={shapes.node} bg={bg} dim={!!dim} />
+    </View>
+  );
+});
+
+/** The JetBrains-style row's lanes with plain Views (Paseo 0.12): thin strokes and a dot or ringed node. */
+export const ViewJbLanes = memo(function ViewJbLanes({ shapes, width, bg }: { shapes: { segments: JbSegment[]; node: JbNodeShape }; width: number; bg: string }) {
+  const n = shapes.node;
+  return (
+    <View style={{ width, height: 26 }} pointerEvents="none">
+      {shapes.segments.map((s, k) => (
+        <Stroke key={k} s={s as Segment} />
+      ))}
+      <View
+        style={{
+          position: "absolute",
+          left: n.x - n.r,
+          top: n.y - n.r,
+          width: n.r * 2,
+          height: n.r * 2,
+          borderRadius: n.r,
+          backgroundColor: n.ring || n.dashed ? bg : n.color,
+          borderWidth: n.ring ? 1.5 : n.dashed ? 1.4 : 0,
+          borderStyle: n.dashed ? "dashed" : "solid",
+          borderColor: n.color,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {n.ring && <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: n.color }} />}
+      </View>
     </View>
   );
 });

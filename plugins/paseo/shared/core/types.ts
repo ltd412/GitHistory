@@ -113,7 +113,16 @@ export interface Settings {
   theme: 'dark' | 'light' | 'system' | 'schedule';
   lightFrom: string;
   darkFrom: string;
+  /** Interface style; null until the user picks one on first launch. */
+  uiStyle: UiStyle | null;
+  /** Check GitHub for a newer release in the background (desktop app only). */
+  checkUpdates: boolean;
 }
+
+/** `kraken`: GitKraken-style graph. `jetbrains`: PyCharm/IntelliJ-style Git log (table, branches tree, details). */
+export type UiStyle = 'kraken' | 'jetbrains';
+export const UI_STYLES: readonly UiStyle[] = ['kraken', 'jetbrains'];
+export const isUiStyle = (v: unknown): v is UiStyle => v === 'kraken' || v === 'jetbrains';
 
 export interface ManagedRepo {
   path: string;

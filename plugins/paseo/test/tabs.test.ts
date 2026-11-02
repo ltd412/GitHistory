@@ -27,3 +27,25 @@ test("tabs are written atomically and read back; bad files read as empty", () =>
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("the chosen interface style is saved with the tabs; files without it, or with a bad one, have none", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "githistory-tabs-style-"));
+  try {
+    const file = tabsFile({ PASEO_HOME: dir });
+    const legacy = legacyTabsFile({ PASEO_HOME: dir });
+    writeTabs({ tabs: [], active: null, style: "jetbrains" }, file);
+    assert.deepEqual(readTabs(file, legacy), { tabs: [], active: null, style: "jetbrains" });
+    // Choosing again replaces it; clearing it (null) leaves no style behind.
+    writeTabs({ tabs: [], active: null, style: "kraken" }, file);
+    assert.equal(readTabs(file, legacy).style, "kraken");
+    writeTabs({ tabs: [], active: null, style: null }, file);
+    assert.deepEqual(readTabs(file, legacy), { tabs: [], active: null });
+    // A file from an older plugin (no style) or a hand-edited bad value reads as "not chosen yet".
+    fs.writeFileSync(file, JSON.stringify({ version: 1, tabs: [], active: null }));
+    assert.equal(readTabs(file, legacy).style, undefined);
+    fs.writeFileSync(file, JSON.stringify({ version: 1, tabs: [], active: null, style: "rainbow" }));
+    assert.equal(readTabs(file, legacy).style, undefined);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

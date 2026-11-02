@@ -24,7 +24,11 @@ export function readTabs(file = tabsFile(), legacy = legacyTabsFile()): TabsStat
   if (!fs.existsSync(file) && fs.existsSync(legacy)) file = legacy;
   try {
     const raw = JSON.parse(fs.readFileSync(file, "utf8"));
-    if (raw?.version === 1 && Array.isArray(raw.tabs)) return { tabs: raw.tabs, active: raw.active ?? null };
+    if (raw?.version === 1 && Array.isArray(raw.tabs)) {
+      // `style` is optional: files written before the JetBrains style existed simply have none.
+      const style = raw.style === "kraken" || raw.style === "jetbrains" ? raw.style : undefined;
+      return { tabs: raw.tabs, active: raw.active ?? null, ...(style ? { style } : {}) };
+    }
   } catch {
     // Missing or unreadable: start with no saved tabs.
   }
@@ -35,7 +39,7 @@ export function readTabs(file = tabsFile(), legacy = legacyTabsFile()): TabsStat
 export function writeTabs(state: TabsState, file = tabsFile()): TabsState {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ version: 1, ...state }, null, 2));
+  fs.writeFileSync(tmp, JSON.stringify({ version: 1, ...state, style: state.style ?? undefined }, null, 2));
   fs.renameSync(tmp, file);
   return state;
 }

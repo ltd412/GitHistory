@@ -147,7 +147,9 @@ export const historyRpc = defineRpc({
 
 const SavedTab = z.object({ ref: RepoRefSchema, title: z.string().min(1).max(200) });
 export type SavedTab = z.infer<typeof SavedTab>;
-const TabsState = z.object({ tabs: z.array(SavedTab).max(30), active: z.string().max(4200).nullable() });
+/** Interface style chosen on first use (Kraken graph or JetBrains-style log); absent until chosen. */
+export const UiStyleSchema = z.enum(["kraken", "jetbrains"]);
+const TabsState = z.object({ tabs: z.array(SavedTab).max(30), active: z.string().max(4200).nullable(), style: UiStyleSchema.nullable().optional() });
 export type TabsState = z.infer<typeof TabsState>;
 
 /** Open project tabs, kept on the daemon so a reload or another device shows the same tabs (dinh-chinh-03). */

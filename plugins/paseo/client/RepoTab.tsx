@@ -11,13 +11,18 @@ import { Text, View } from "react-native";
 import { createActions, type CommandOutput } from "../shared/core/actions";
 import { relativeTime } from "../shared/core/format";
 import { buildRefLabels, type Actions, type RepoData } from "../shared/core/menus";
-import { WORKTREE, type CenterView, type Selection } from "../shared/core/types";
+import { NO_FILTER, type LogFilter } from "../shared/core/jb";
+import { WORKTREE, type CenterView, type Selection, type UiStyle } from "../shared/core/types";
 import { historyRpc, jobRpc, readRpc, revisionRpc, snapshotRpc, writeRpc, type RepoRef } from "../shared/rpc";
 import { CommitPanel, StashPanel } from "./CommitPanel";
 import { ComparePanel } from "./ComparePanel";
 import { DiffView } from "./DiffView";
 import { CenterViews } from "./FileViews";
 import { Graph } from "./Graph";
+import { JbBranches } from "./jb/JbBranches";
+import { JbDetails } from "./jb/JbDetails";
+import { JbFilterCtx } from "./jb/JbFilter";
+import { JbLog } from "./jb/JbLog";
 import { RepoCtx, useRepo, type RepoCtxValue } from "./RepoContext";
 import { Sidebar } from "./Sidebar";
 import { Toolbar } from "./Toolbar";
@@ -39,8 +44,8 @@ const STATE_LABEL: Record<string, string> = {
   reverting: "Revert in progress",
 };
 
-export function RepoTab(props: { repoRef: RepoRef; title: string; theme: PluginScreenProps["theme"]; compact: boolean }) {
-  const t = useMemo(() => tokens(props.theme), [props.theme]);
+export function RepoTab(props: { repoRef: RepoRef; title: string; theme: PluginScreenProps["theme"]; compact: boolean; style: UiStyle }) {
+  const t = useMemo(() => tokens(props.theme, props.style), [props.theme, props.style]);
   return (
     <DialogProvider t={t}>
       <RepoTabBody {...props} t={t} />
@@ -49,6 +54,9 @@ export function RepoTab(props: { repoRef: RepoRef; title: string; theme: PluginS
 }
 
 function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: string; compact: boolean; t: ReturnType<typeof tokens> }) {
+  const jb = t.style === "jetbrains";
+  // JetBrains style: the log filter is shared by the branches pane and the log.
+  const [logFilter, setLogFilter] = useState<LogFilter>(NO_FILTER);
   const ui = useUi();
   const qc = useQueryClient();
   const read = useRpc(readRpc);
@@ -238,7 +246,7 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
     selection?.kind === "wip" || (selection == null && data.state.state !== "clean") ? (
       <WipPanel />
     ) : selection?.kind === "commit" ? (
-      <CommitPanel key={selection.hash} hash={selection.hash} />
+      jb ? <JbDetails key={selection.hash} hash={selection.hash} /> : <CommitPanel key={selection.hash} hash={selection.hash} />
     ) : selection?.kind === "stash" ? (
       <StashPanel key={selection.stash.hash} stash={selection.stash} />
     ) : selection?.kind === "compare" ? (
@@ -259,23 +267,26 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
   // Paseo's Modal renders its content outside this tree, so contexts must be carried in explicitly.
   const carry = (node: React.ReactNode) => (
     <UiProvider value={ui}>
-      <RepoCtx.Provider value={ctx}>{node}</RepoCtx.Provider>
+      <RepoCtx.Provider value={ctx}>
+        <JbFilterCtx.Provider value={{ filter: logFilter, setFilter: setLogFilter }}>{node}</JbFilterCtx.Provider>
+      </RepoCtx.Provider>
     </UiProvider>
   );
 
   return (
     <RepoCtx.Provider value={ctx}>
+      <JbFilterCtx.Provider value={{ filter: logFilter, setFilter: setLogFilter }}>
       <View style={{ flex: 1, backgroundColor: t.bg }} onLayout={(e) => setWidth(Math.round(e.nativeEvent.layout.width))}>
         <Toolbar title={title} />
         <View style={{ flex: 1, flexDirection: "row" }}>
           {!narrow && (
             <View style={{ width: (width ?? 1300) < 1300 ? 210 : 250, borderRightWidth: 1, borderRightColor: t.border }}>
-              <Sidebar />
+              {jb ? <JbBranches /> : <Sidebar />}
             </View>
           )}
           <View style={{ flex: 1, minWidth: 0 }}>
             {data.state.state !== "clean" && <StateBar />}
-            <Graph />
+            {jb ? <JbLog /> : <Graph />}
           </View>
           {!narrow && <View style={{ width: rightW, borderLeftWidth: 1, borderLeftColor: t.border, backgroundColor: t.panel }}>{detail}</View>}
         </View>
@@ -300,7 +311,7 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
       )}
       <Modal title="Branches" open={narrow && sidebarOpen} onOpenChange={setSidebarOpen}>
         <Modal.Content scrollable={false} contentContainerStyle={{ padding: 0, gap: 0, height: 560 }}>
-          {narrow ? carry(<Sidebar onPicked={() => setSidebarOpen(false)} />) : null}
+          {narrow ? carry(jb ? <JbBranches onPicked={() => setSidebarOpen(false)} /> : <Sidebar onPicked={() => setSidebarOpen(false)} />) : null}
         </Modal.Content>
       </Modal>
       {/* Phone only. Driven by `open`, never by mounting: Paseo's Modal stays up if it is unmounted while
@@ -322,6 +333,7 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
         </Modal>
       )}
       {rebaseBase !== undefined && <CenterViews.Rebase base={rebaseBase} onClose={() => setRebaseBase(undefined)} />}
+      </JbFilterCtx.Provider>
     </RepoCtx.Provider>
   );
 }
