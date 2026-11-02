@@ -8,7 +8,7 @@ import { Icon, ScrollView } from "./ui/sdk";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { tabsRpc, workspacesRpc, type RepoRef } from "../shared/rpc";
+import { tabsRpc, updateRpc, workspacesRpc, type RepoRef } from "../shared/rpc";
 import type { UiStyle } from "../shared/core/types";
 import { StylePicker } from "./StylePicker";
 import { ProjectPicker, type PickedProject } from "./ProjectPicker";
@@ -32,6 +32,11 @@ export function GitScreen({ theme, layout, host }: PluginScreenProps) {
   const [style, setStyle] = useState<UiStyle | null>(null);
   const [styleReady, setStyleReady] = useState(false);
   const [styleOpen, setStyleOpen] = useState(false);
+
+  // A newer GitHistory release: show how to update (the plugin cannot update itself). Dismissed per version.
+  const updateCall = useRpc(updateRpc);
+  const upd = useQuery({ queryKey: ["githistory", "update"], queryFn: () => updateCall({}), staleTime: 60 * 60_000, refetchInterval: 6 * 60 * 60_000, retry: false });
+  const [dismissed, setDismissed] = useState<string | null>(null);
 
   // Restore the tabs saved on the daemon; with none saved, open the first Git workspace (or the picker).
   const tabsCall = useRpc(tabsRpc);
@@ -136,6 +141,17 @@ export function GitScreen({ theme, layout, host }: PluginScreenProps) {
           <Icon name="Plus" size={18} color={c.foreground} />
         </Pressable>
       </View>
+      {upd.data?.latest && dismissed !== upd.data.latest && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: c.surface2, borderBottomWidth: 1, borderBottomColor: c.border }}>
+          <Icon name="RefreshCw" size={14} color={c.accent} />
+          <Text style={{ color: c.foreground, fontSize: 12, flex: 1 }} selectable>
+            {`GitHistory ${upd.data.latest} is available (you have ${upd.data.current}). On the Paseo daemon's machine run: ${upd.data.command}`}
+          </Text>
+          <Pressable onPress={() => setDismissed(upd.data!.latest)} hitSlop={8} accessibilityLabel="Dismiss update notice">
+            <Icon name="X" size={12} color={c.foregroundMuted} />
+          </Pressable>
+        </View>
+      )}
       {picking && <ProjectPicker theme={theme} hostLabel={host.label} openKeys={openKeys} onPick={open} onClose={closePicker} />}
       {current ? (
         <RepoTab key={current.key} repoRef={current.ref} title={current.title} theme={theme} compact={layout.compact} style={style ?? "kraken"} />

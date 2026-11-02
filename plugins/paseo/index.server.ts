@@ -4,7 +4,8 @@ import { disposeAll } from "./server/registry";
 import { job, read, undoRedo, write } from "./server/actions";
 import { tabs } from "./server/tabs";
 import { searchDirs } from "./server/search-dirs";
-import { browseRpc, historyRpc, jobRpc, readRpc, revisionRpc, searchDirsRpc, snapshotRpc, tabsRpc, workspacesRpc, writeRpc } from "./shared/rpc";
+import { updateCheck } from "./server/update";
+import { browseRpc, historyRpc, jobRpc, readRpc, revisionRpc, searchDirsRpc, snapshotRpc, tabsRpc, updateRpc, workspacesRpc, writeRpc } from "./shared/rpc";
 
 export default function contribute(server: PluginServerContext) {
   server.handle(revisionRpc, revision);
@@ -17,5 +18,6 @@ export default function contribute(server: PluginServerContext) {
   server.handle(historyRpc, undoRedo);
   server.handle(tabsRpc, tabs);
   server.handle(searchDirsRpc, searchDirs);
+  server.handle(updateRpc, updateCheck);
   return () => disposeAll();
 }

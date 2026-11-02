@@ -94,6 +94,16 @@ function createUpdater({ app, shell, send, settings }) {
 
   const relaunch = (opts) => {
     if (noRelaunch) return set({ phase: 'opened', version: offer.version });
+    if (!opts && process.platform === 'linux') {
+      // WHY not app.relaunch(): dpkg replaced the executable that is running, so process.execPath now reads
+      // ".../githistory (deleted)" and Electron would try to start a path that does not exist. Start the new
+      // binary ourselves, detached, a moment after this process has released its lock and window.
+      const exe = process.execPath.replace(/ \(deleted\)$/, '');
+      const target = fs.existsSync(exe) ? exe : '/usr/bin/githistory';
+      const child = spawn('/bin/sh', ['-c', 'sleep 1; exec "$0" "$@"', target, ...process.argv.slice(1).filter((a) => !a.startsWith('--inspect'))], { detached: true, stdio: 'ignore', env: process.env });
+      child.unref();
+      return app.exit(0);
+    }
     app.relaunch(opts);
     app.exit(0);
   };

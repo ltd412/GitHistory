@@ -168,3 +168,13 @@ export const searchDirsRpc = defineRpc({
   input: z.object({ query: z.string().max(1024) }),
   output: z.object({ entries: z.array(z.object({ path: z.string(), display: z.string(), isRepo: z.boolean() })), truncated: z.boolean() }),
 });
+
+/**
+ * Is a newer GitHistory release published? The plugin never updates itself: the client shows the command
+ * to run on the daemon's machine. `latest` is null when up to date or when GitHub could not be reached.
+ */
+export const updateRpc = defineRpc({
+  name: "githistory.update",
+  input: z.object({}),
+  output: z.object({ current: z.string(), latest: z.string().nullable(), url: z.string().nullable(), command: z.string() }),
+});
