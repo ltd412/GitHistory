@@ -8,6 +8,7 @@ import { IconBlame, IconFile, IconHistory, IconX, StatusIcon } from './Icons';
 import { ImageDiff, type BlobSide } from './ImageDiff';
 import { useUI } from './Overlays';
 import { useRepo } from './RepoContext';
+import { ROW_H, WINDOW_MIN, WindowedList, useWindow } from './diffWindow';
 
 type DiffCenter = Extract<CenterView, { kind: 'diff' }>;
 type Mode = 'side' | 'file' | 'hunk' | 'split';
@@ -65,12 +66,13 @@ export function DiffView({ view }: { view: DiffCenter }) {
   const editable = (source.kind === 'unstaged' || source.kind === 'staged') && !ignoreWs;
   const untracked = !!file.untracked;
 
+  // Side-by-side and File show the whole file, so they ask git for full context. WHY a boolean in the deps and
+  // not `mode`: switching between those two must not run git again (nor re-parse a 100k-line diff).
+  const full = mode === 'side' || mode === 'file';
   const load = useCallback(async () => {
     if (image) return;
     try {
       let text: string;
-      // Side-by-side and File show the whole file, so they ask git for full context.
-      const full = mode === 'side' || mode === 'file';
       if (source.kind === 'unstaged') text = await git.diffWorking(repo, file.path, { untracked, ignoreWs, full });
       else if (source.kind === 'staged') text = await git.diffWorking(repo, file.path, { staged: true, ignoreWs, full });
       else if (source.kind === 'commit') text = await git.diffCommit(repo, source.hash, file.path, file.oldPath, ignoreWs, full);
@@ -81,7 +83,7 @@ export function DiffView({ view }: { view: DiffCenter }) {
     } catch (e) {
       setError(errorMessage(e));
     }
-  }, [repo, source, file.path, file.oldPath, untracked, ignoreWs, image, mode]);
+  }, [repo, source, file.path, file.oldPath, untracked, ignoreWs, image, full]);
 
   // Working-tree diffs follow every status change (staging a hunk rewrites the diff).
   const isWorking = source.kind === 'unstaged' || source.kind === 'staged' || (source.kind === 'range' && source.to === WORKTREE);
@@ -130,8 +132,17 @@ export function DiffView({ view }: { view: DiffCenter }) {
     setAnchor(li);
   };
 
+  // Word segments are an LCS per changed line: computed once per line, not on every render (selection, scroll).
+  const wordCache = useMemo(() => new Map<string, WordSeg[] | null>(), [diff]);
   /** Word segments for a changed line, or null to render it plainly. */
   const wordsFor = (hi: number, li: number): WordSeg[] | null => {
+    const key = `${hi}:${li}`;
+    if (wordCache.has(key)) return wordCache.get(key)!;
+    const words = computeWords(hi, li);
+    wordCache.set(key, words);
+    return words;
+  };
+  const computeWords = (hi: number, li: number): WordSeg[] | null => {
     const h = diff!.hunks[hi];
     const partner = pairs[hi]?.get(li);
     if (partner == null) return null;
@@ -305,45 +316,86 @@ export function DiffView({ view }: { view: DiffCenter }) {
                   )}
                 </div>
                 {mode === 'hunk' || mode === 'file' ? (
-                  h.lines.map((l, li) => (
-                    <Line
-                      key={li}
-                      l={l}
-                      words={l.type === '+' || l.type === '-' ? wordsFor(hi, li) : null}
-                      selected={!!lines?.has(li)}
-                      selectable={editable && (l.type === '+' || l.type === '-')}
-                      onClick={(e) => clickLine(hi, li, l, e)}
-                    />
-                  ))
+                  (() => {
+                    const lineEl = (li: number) => {
+                      const l = h.lines[li];
+                      return (
+                        <Line
+                          key={li}
+                          l={l}
+                          words={l.type === '+' || l.type === '-' ? wordsFor(hi, li) : null}
+                          selected={!!lines?.has(li)}
+                          selectable={editable && (l.type === '+' || l.type === '-')}
+                          onClick={(e) => clickLine(hi, li, l, e)}
+                        />
+                      );
+                    };
+                    return h.lines.length > WINDOW_MIN ? (
+                      <WindowedList count={h.lines.length}>{lineEl}</WindowedList>
+                    ) : (
+                      h.lines.map((_, li) => lineEl(li))
+                    );
+                  })()
                 ) : (
-                  <div className="split">
-                    {(['left', 'right'] as const).map((side) => (
-                      <div className="side" key={side}>
-                        {splitRows(h).map((r, k) => {
-                          const l = r[side];
-                          const idx = side === 'left' ? r.index[0] : r.index[1];
-                          if (!l) return <div key={k} className="dl empty">&nbsp;</div>;
-                          return (
-                            <Line
-                              key={k}
-                              l={l}
-                              single={side}
-                              words={l.type !== ' ' ? wordsFor(hi, idx) : null}
-                              selected={!!lines?.has(idx)}
-                              selectable={editable && l.type !== ' '}
-                              onClick={(e) => clickLine(hi, idx, l, e)}
-                            />
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
+                  <SplitRows
+                    rows={rowsOf(h)}
+                    renderCell={(r, side) => {
+                      const l = r[side];
+                      const idx = side === 'left' ? r.index[0] : r.index[1];
+                      if (!l) return <div className="dl empty">&nbsp;</div>;
+                      return (
+                        <Line
+                          l={l}
+                          single={side}
+                          words={l.type !== ' ' ? wordsFor(hi, idx) : null}
+                          selected={!!lines?.has(idx)}
+                          selectable={editable && l.type !== ' '}
+                          onClick={(e) => clickLine(hi, idx, l, e)}
+                        />
+                      );
+                    }}
+                  />
                 )}
               </div>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+type SplitRow = ReturnType<typeof splitRows>[number];
+
+// Aligned rows of a hunk, computed once per parsed diff (Split mode and Side-by-side both use them).
+const rowCache = new WeakMap<Hunk, SplitRow[]>();
+const rowsOf = (h: Hunk): SplitRow[] => {
+  let rows = rowCache.get(h);
+  if (!rows) rowCache.set(h, (rows = splitRows(h)));
+  return rows;
+};
+
+/** The two panes of Split mode; windowed when the hunk is large (both sides share one visible range). */
+function SplitRows({ rows, renderCell }: { rows: SplitRow[]; renderCell: (r: SplitRow, side: 'left' | 'right') => React.ReactNode }) {
+  const big = rows.length > WINDOW_MIN;
+  const { ref, start, end } = useWindow(rows.length);
+  const from = big ? start : 0;
+  const to = big ? end : rows.length;
+  return (
+    <div className="split" ref={ref}>
+      {(['left', 'right'] as const).map((side) => (
+        <div className="side" key={side} style={big ? { position: 'relative', height: rows.length * ROW_H } : undefined}>
+          {rows.slice(from, to).map((r, k) =>
+            big ? (
+              <div key={from + k} style={{ position: 'absolute', top: (from + k) * ROW_H, left: 0, right: 0, height: ROW_H }}>
+                {renderCell(r, side)}
+              </div>
+            ) : (
+              <div key={k}>{renderCell(r, side)}</div>
+            ),
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -429,7 +481,7 @@ function SideBySide({
   const blocks = useMemo(() => {
     const out: { hi: number; kind: 'same' | 'change'; rows: ReturnType<typeof splitRows> }[] = [];
     diff.hunks.forEach((h, hi) => {
-      for (const r of splitRows(h)) {
+      for (const r of rowsOf(h)) {
         const same = r.left?.type === ' ' && r.right?.type === ' ';
         const kind = same ? 'same' : 'change';
         const last = out[out.length - 1];
@@ -465,6 +517,89 @@ function SideBySide({
       </div>
     );
   };
+
+  // Big diffs (a whole file rewritten, a huge generated file): wrapped lines have no fixed height, so past this
+  // many displayed rows the pane switches to one fixed-height row per line (no wrapping), mounted in a window.
+  const flat = useMemo(() => {
+    const items: ({ kind: 'row'; hi: number; r: SplitRow } | { kind: 'fold'; key: string; hidden: number })[] = [];
+    const starts: number[] = [];
+    blocks.forEach((b, bi) => {
+      if (b.kind === 'change') {
+        starts.push(items.length);
+        for (const r of b.rows) items.push({ kind: 'row', hi: b.hi, r });
+        return;
+      }
+      const key = `${bi}`;
+      const head = bi === 0 ? 0 : CTX;
+      const tail = bi === blocks.length - 1 ? 0 : CTX;
+      const foldable = b.rows.length > head + tail + 2 && !unfolded.has(key);
+      if (!foldable) for (const r of b.rows) items.push({ kind: 'row', hi: b.hi, r });
+      else {
+        for (const r of b.rows.slice(0, head)) items.push({ kind: 'row', hi: b.hi, r });
+        items.push({ kind: 'fold', key, hidden: b.rows.length - head - tail });
+        for (const r of b.rows.slice(b.rows.length - tail)) items.push({ kind: 'row', hi: b.hi, r });
+      }
+    });
+    return { items, starts };
+  }, [blocks, unfolded]);
+  const windowed = flat.items.length > 1500;
+  const win = useWindow(flat.items.length);
+  const listRef = win.ref;
+
+  const goWindowed = (d: 1 | -1) => {
+    if (!changeCount) return;
+    const n = (current + d + changeCount) % changeCount;
+    setCurrent(n);
+    const el = listRef.current;
+    const scroller = el?.closest('.diff-body') as HTMLElement | null;
+    if (!el || !scroller) return;
+    const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    scroller.scrollTop = top + flat.starts[n] * ROW_H - scroller.clientHeight / 2;
+  };
+
+  if (windowed) {
+    const rows: React.ReactNode[] = [];
+    for (let i = win.start; i < win.end; i++) {
+      const it = flat.items[i];
+      rows.push(
+        <div key={i} className="sb-frow" style={{ top: i * ROW_H }}>
+          {it.kind === 'fold' ? (
+            <div className="sb-fold" onClick={() => setUnfolded((u) => new Set(u).add(it.key))}>
+              ··· {it.hidden} unchanged lines ···
+            </div>
+          ) : (
+            <div className="sb-row">
+              {cell(it.hi, it.r.left, it.r.index[0], 'left', 'l')}
+              {cell(it.hi, it.r.right, it.r.index[1], 'right', 'r')}
+            </div>
+          )}
+        </div>,
+      );
+    }
+    return (
+      <div className="sb sb-fixed">
+        <div className="sb-head">
+          <div className="sb-title">{labels[0]}</div>
+          <div className="sb-title">{labels[1]}</div>
+          <div className="sb-nav">
+            {lineActions}
+            <span className="sb-count">
+              {changeCount} change{changeCount === 1 ? '' : 's'}
+            </span>
+            <button className="btn ghost" title="Previous change" onClick={() => goWindowed(-1)}>
+              ▲
+            </button>
+            <button className="btn ghost" title="Next change" onClick={() => goWindowed(1)}>
+              ▼
+            </button>
+          </div>
+        </div>
+        <div ref={listRef} style={{ position: 'relative', height: flat.items.length * ROW_H }}>
+          {rows}
+        </div>
+      </div>
+    );
+  }
 
   let change = -1;
   return (
