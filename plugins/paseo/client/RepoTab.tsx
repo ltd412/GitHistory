@@ -4,7 +4,7 @@
 // (core/actions.ts) running over Paseo RPC.
 import type { PluginScreenProps } from "@getpaseo/plugin/client";
 import { useRpc } from "@getpaseo/plugin/client";
-import { Loading, Modal, copyText } from "./ui/sdk";
+import { Loading, ScrollView, copyText } from "./ui/sdk";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
@@ -29,8 +29,9 @@ import { Toolbar } from "./Toolbar";
 import { WipPanel } from "./WipPanel";
 import { tokens } from "./theme";
 import { errorMessage, newOpId, rpcGitClient } from "./transport";
-import { Button, DialogProvider, UiProvider, useUi } from "./ui/Dialogs";
+import { Button, DialogProvider, useUi } from "./ui/Dialogs";
 import { FloatingFrame } from "./ui/FloatingFrame";
+import { Sheet } from "./ui/Sheet";
 
 const PAGE = 2000;
 /** flows.md F2: the visible tab polls the cheap revision counter; hidden tabs are unmounted. */
@@ -264,15 +265,6 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
       <CenterViews view={center} />
     );
 
-  // Paseo's Modal renders its content outside this tree, so contexts must be carried in explicitly.
-  const carry = (node: React.ReactNode) => (
-    <UiProvider value={ui}>
-      <RepoCtx.Provider value={ctx}>
-        <JbFilterCtx.Provider value={{ filter: logFilter, setFilter: setLogFilter }}>{node}</JbFilterCtx.Provider>
-      </RepoCtx.Provider>
-    </UiProvider>
-  );
-
   return (
     <RepoCtx.Provider value={ctx}>
       <JbFilterCtx.Provider value={{ filter: logFilter, setFilter: setLogFilter }}>
@@ -301,6 +293,23 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
             </Text>
           )}
         </View>
+      {/* Phone only: sheets live inside this tree, so they go away with the screen (see ui/Sheet.tsx). */}
+      <Sheet t={t} title="Branches" open={narrow && sidebarOpen} onClose={() => setSidebarOpen(false)}>
+        {jb ? <JbBranches onPicked={() => setSidebarOpen(false)} /> : <Sidebar onPicked={() => setSidebarOpen(false)} />}
+      </Sheet>
+      <Sheet
+        t={t}
+        title={selection?.kind === "wip" ? "Working tree" : selection?.kind === "stash" ? "Stash" : selection?.kind === "compare" ? "Compare" : "Commit"}
+        open={narrow && !!selection && center.kind === "graph"}
+        onClose={() => setSelection(null)}
+      >
+        {detail}
+      </Sheet>
+      <Sheet t={t} title={cmdOutput ? `${cmdOutput.name} — exit code ${cmdOutput.code}` : ""} open={!!cmdOutput} onClose={() => setCmdOutput(null)}>
+        <ScrollView contentContainerStyle={{ padding: 12 }}>
+          <Text style={{ color: t.text, fontFamily: t.mono, fontSize: 11 }}>{cmdOutput ? cmdOutput.stdout || cmdOutput.stderr || "(no output)" : ""}</Text>
+        </ScrollView>
+      </Sheet>
       </View>
       {centerView && (
         <FloatingFrame t={t} title={frameTitle(center, repoRef.kind === "path" ? title : title)} onClose={() => ctx.setCenter({ kind: "graph" })}>
@@ -308,29 +317,6 @@ function RepoTabBody({ repoRef, title, compact, t }: { repoRef: RepoRef; title: 
           {data.state.state !== "clean" && center.kind !== "conflict" && <StateBar />}
           {centerView}
         </FloatingFrame>
-      )}
-      <Modal title="Branches" open={narrow && sidebarOpen} onOpenChange={setSidebarOpen}>
-        <Modal.Content scrollable={false} contentContainerStyle={{ padding: 0, gap: 0, height: 560 }}>
-          {narrow ? carry(jb ? <JbBranches onPicked={() => setSidebarOpen(false)} /> : <Sidebar onPicked={() => setSidebarOpen(false)} />) : null}
-        </Modal.Content>
-      </Modal>
-      {/* Phone only. Driven by `open`, never by mounting: Paseo's Modal stays up if it is unmounted while
-          open, which left this sheet over the wide layout after a brief narrow measurement during load. */}
-      <Modal
-        title={selection?.kind === "wip" ? "Working tree" : selection?.kind === "stash" ? "Stash" : selection?.kind === "compare" ? "Compare" : "Commit"}
-        open={narrow && !!selection && center.kind === "graph"}
-        onOpenChange={(o) => !o && setSelection(null)}
-      >
-        <Modal.Content scrollable={false} contentContainerStyle={{ padding: 0, gap: 0, height: 620 }}>
-          {narrow ? carry(detail) : null}
-        </Modal.Content>
-      </Modal>
-      {cmdOutput && (
-        <Modal title={`${cmdOutput.name} — exit code ${cmdOutput.code}`} open onOpenChange={(o) => !o && setCmdOutput(null)}>
-          <Modal.Content>
-            <Text style={{ color: t.text, fontFamily: t.mono, fontSize: 11 }}>{cmdOutput.stdout || cmdOutput.stderr || "(no output)"}</Text>
-          </Modal.Content>
-        </Modal>
       )}
       {rebaseBase !== undefined && <CenterViews.Rebase base={rebaseBase} onClose={() => setRebaseBase(undefined)} />}
       </JbFilterCtx.Provider>
