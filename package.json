@@ -1,6 +1,6 @@
 {
   "name": "githistory",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Free, open-source Git client with a commit graph, side-by-side diffs and a three-way merge tool — desktop app and Paseo plugin",
   "main": "electron/main.cjs",
   "private": true,
