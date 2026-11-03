@@ -9,14 +9,14 @@ import { dropMenu, labelMenu, refDisplayName, rowMenu, stashMenu, useRepo, type 
 
 const OVERSCAN = 12;
 
-export function GraphView({ findSeq }: { findSeq: number }) {
+export function GraphView({ findSeq, memo }: { findSeq: number; memo: { current: number } }) {
   const ctx = useRepo();
   const { repo, data, selection, select, labels, settings, actions: a } = ctx;
   const ui = useUI();
   const m = settings.compact ? COMPACT : NORMAL;
   const scroller = useRef<HTMLDivElement>(null);
   const [scrollX, setScrollXRaw] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
+  const [scrollTop, setScrollTop] = useState(memo.current);
   const [height, setHeight] = useState(600);
   const [viewW, setViewW] = useState(1000);
   const [refW, setRefW] = useState(190);
@@ -87,6 +87,10 @@ export function GraphView({ findSeq }: { findSeq: number }) {
 
   // ------------------------------------------------------------ scrolling
 
+  useLayoutEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = memo.current;
+  }, []);
+
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
@@ -118,6 +122,7 @@ export function GraphView({ findSeq }: { findSeq: number }) {
   const onScroll = () => {
     hideHover();
     const el = scroller.current!;
+    memo.current = el.scrollTop;
     // Only the row the window starts at matters (rows are mounted per row): re-render once per row scrolled, not per
     // scroll event.
     setScrollTop(Math.floor(el.scrollTop / m.row) * m.row);

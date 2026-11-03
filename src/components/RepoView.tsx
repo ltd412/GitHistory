@@ -67,6 +67,8 @@ export function RepoView({
   const [data, setData] = useState<RepoData>(EMPTY);
   const [selection, setSelection] = useState<Selection>(null);
   const [center, setCenter] = useState<CenterView>({ kind: 'graph' });
+  // WHY: the graph/log unmounts while a diff is open; remember where it was scrolled so closing the diff returns there.
+  const listScroll = useRef(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState('');
   const [leftOpen, setLeftOpen] = useState(true);
@@ -383,7 +385,7 @@ export function RepoView({
             </div>
           )}
           <ErrorBoundary resetKey={JSON.stringify(center)} onReset={() => setCenter({ kind: 'graph' })}>
-          {center.kind === 'graph' && (jb ? <JbLog findSeq={findSeq} /> : <GraphView findSeq={findSeq} />)}
+          {center.kind === 'graph' && (jb ? <JbLog findSeq={findSeq} memo={listScroll} /> : <GraphView findSeq={findSeq} memo={listScroll} />)}
           {center.kind === 'diff' && <DiffView key={`${center.file.path}:${JSON.stringify(center.source)}`} view={center} />}
           {center.kind === 'conflict' && <ConflictView key={center.file} file={center.file} />}
           {center.kind === 'history' && <HistoryView key={center.file} file={center.file} />}

@@ -1,7 +1,7 @@
 // JetBrains-style Git log, laid out like the OpenIDEA / PyCharm one: a filter bar over a header-less table
 // whose first column is the commit graph followed by the subject and the reference labels, then Author and
 // Date (Hash optional). Same data, selection and menus as the Kraken graph; only the presentation differs.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { git } from '../../lib/api';
 import { buildNodes, WIP_HASH, type GraphNode } from '../../lib/graph';
 import {
@@ -28,7 +28,7 @@ import { setJbOptions, useJbOptions } from './options';
 
 const OVERSCAN = 20;
 
-export function JbLog({ findSeq }: { findSeq: number }) {
+export function JbLog({ findSeq, memo }: { findSeq: number; memo: { current: number } }) {
   const ctx = useRepo();
   const { repo, data, selection, select, labels, actions: a } = ctx;
   const ui = useUI();
@@ -36,7 +36,7 @@ export function JbLog({ findSeq }: { findSeq: number }) {
   const { filter, setFilter } = useJbFilter();
   const scroller = useRef<HTMLDivElement>(null);
   const textInput = useRef<HTMLInputElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  const [scrollTop, setScrollTop] = useState(memo.current);
   const [height, setHeight] = useState(600);
   const [pick, setPick] = useState<'branch' | 'user' | null>(null);
   const [me, setMe] = useState<string | null>(null);
@@ -100,8 +100,13 @@ export function JbLog({ findSeq }: { findSeq: number }) {
     if (findSeq) textInput.current?.select();
   }, [findSeq]);
 
+  useLayoutEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = memo.current;
+  }, []);
+
   const onScroll = () => {
     const el = scroller.current!;
+    memo.current = el.scrollTop;
     setScrollTop(el.scrollTop);
     if (data.hasMore && !filtered && el.scrollTop + el.clientHeight > el.scrollHeight - JB_ROW * 50) a.loadMore();
   };
