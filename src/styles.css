@@ -240,6 +240,11 @@ input, textarea, select, button { font: inherit; color: inherit; }
 
 /* ---------- right panel */
 .rp-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.rp-scroll.split { display: flex; flex-direction: column; overflow: hidden; }
+.rp-scroll.split > .detail { flex: 0 0 auto; overflow-y: auto; min-height: 60px; border-bottom: none; }
+.rp-scroll.split > .rp-files { flex: 1; min-height: 80px; overflow-y: auto; }
+.split-bar { flex: 0 0 5px; margin: -2px 0; cursor: row-resize; z-index: 5; border-top: 1px solid var(--border-soft); }
+.split-bar:hover { background: var(--accent); }
 .rp-head { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 8px; }
 .rp-head .title { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rp-section-head {

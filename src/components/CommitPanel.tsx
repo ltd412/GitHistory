@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { app, errorMessage, git } from '../lib/api';
 import type { CommitDetails, FileChange, Stash } from '../lib/types';
 import { absoluteTime, avatarColor, initials, relativeTime } from '../lib/format';
@@ -14,7 +14,46 @@ function Avatar({ name, email, size = 32 }: { name: string; email: string; size?
   );
 }
 
+const SPLIT_KEY = 'githistory.commitDetailH';
+
 export function CommitPanel({ hash }: { hash: string }) {
+  const detailRef = useRef<HTMLDivElement>(null);
+  const [detailH, setDetailH] = useState<number | null>(() => {
+    try {
+      const v = Number(localStorage.getItem(SPLIT_KEY));
+      return v > 0 ? v : null;
+    } catch {
+      return null;
+    }
+  });
+  // WHY: a long commit message used to push the file list off screen; the files are what people open, so the
+  // message pane is capped (35%) by default and the user can drag the divider to give either side more room.
+  const startSplit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const box = detailRef.current?.parentElement;
+    if (!box || !detailRef.current) return;
+    const y0 = e.clientY;
+    const h0 = detailRef.current.offsetHeight;
+    const max = box.clientHeight - 90;
+    let last = h0;
+    const move = (ev: MouseEvent) => {
+      last = Math.max(60, Math.min(max, h0 + ev.clientY - y0));
+      setDetailH(last);
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      document.body.style.cursor = '';
+      try {
+        localStorage.setItem(SPLIT_KEY, String(Math.round(last)));
+      } catch {
+        /* storage unavailable: the size just is not remembered */
+      }
+    };
+    document.body.style.cursor = 'row-resize';
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
   const ctx = useRepo();
   const { repo, data, center, setCenter, select, actions: a } = ctx;
   const ui = useUI();
@@ -71,8 +110,8 @@ export function CommitPanel({ hash }: { hash: string }) {
           </button>
         )}
       </div>
-      <div className="rp-scroll">
-        <div className="detail">
+      <div className="rp-scroll split">
+        <div className="detail" ref={detailRef} style={detailH ? { height: detailH } : { maxHeight: '35%' }}>
           <div className="sha-row">
             commit:
             <code onClick={() => a.copy(details.hash, 'SHA')} title="Copy SHA">
@@ -119,6 +158,8 @@ export function CommitPanel({ hash }: { hash: string }) {
             </div>
           )}
         </div>
+        <div className="split-bar" onMouseDown={startSplit} title="Drag to resize" />
+        <div className="rp-files">
         <div className="rp-section-head">
           <div className="view-toggle">
             <button className={view === 'changes' ? 'on' : ''} onClick={() => setView('changes')}>
@@ -163,6 +204,7 @@ export function CommitPanel({ hash }: { hash: string }) {
           <div className="empty-files">Loading file tree…</div>
         )
         }
+        </div>
       </div>
     </>
   );
